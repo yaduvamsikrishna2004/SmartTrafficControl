@@ -1,0 +1,25 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Bytecode and caches
+*.sqlite3
+*.log
+
+# Model weights and large data
+models/
+videos/
+outputs/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
