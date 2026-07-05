@@ -1,0 +1,6 @@
+{
+  "model_path": "models/best.pt",
+  "video_path": "videos/cam4.mp4",
+  "output_dir": "outputs",
+  "debug": true
+}

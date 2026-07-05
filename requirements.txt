@@ -1,0 +1,15 @@
+flask==3.0.3
+opencv-python==4.10.0
+numpy==2.0.1
+ultralytics
+opencv-python
+supervision
+numpy
+pandas
+shapely
+fastapi
+uvicorn
+python-multipart
+matplotlib
+plotly
+openpyxl
