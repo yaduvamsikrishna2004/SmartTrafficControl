@@ -20,7 +20,10 @@ class DensityCalculator:
         print("Traffic Density Calculator Initialized")
         print("=" * 60)
 
-    # --------------------------------------------------------
+        # Store latest density for dashboard API
+        self.last_density = {}
+
+    # =========================================================
 
     def calculate_density(self, tracked_objects):
 
@@ -31,13 +34,9 @@ class DensityCalculator:
             lambda: {
 
                 "car": 0,
-
                 "bus": 0,
-
                 "van": 0,
-
                 "others": 0,
-
                 "total": 0
 
             }
@@ -59,9 +58,18 @@ class DensityCalculator:
 
             class_density[lane]["total"] += 1
 
+        # Save latest density
+        self.last_density = {
+
+            "lane_density": dict(lane_density),
+
+            "class_density": dict(class_density)
+
+        }
+
         return lane_density, class_density
 
-    # --------------------------------------------------------
+    # =========================================================
 
     def get_density_level(self, total):
 
@@ -81,20 +89,17 @@ class DensityCalculator:
 
             return "VERY HIGH"
 
-    # --------------------------------------------------------
+    # =========================================================
 
     def print_density(self, class_density):
 
         print("=" * 70)
-
         print("LIVE TRAFFIC DENSITY")
-
         print("=" * 70)
 
         if len(class_density) == 0:
 
             print("No vehicles detected.")
-
             return
 
         for lane, stats in class_density.items():
@@ -104,17 +109,11 @@ class DensityCalculator:
             print()
 
             print(lane)
-
-            print("-"*25)
+            print("-" * 25)
 
             print(f"Cars    : {stats['car']}")
-
             print(f"Bus     : {stats['bus']}")
-
             print(f"Van     : {stats['van']}")
-
             print(f"Others  : {stats['others']}")
-
             print(f"Total   : {stats['total']}")
-
             print(f"Density : {level}")

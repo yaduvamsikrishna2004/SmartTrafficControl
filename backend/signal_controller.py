@@ -20,6 +20,9 @@ class SignalController:
         factor=2
     ):
 
+        # Store latest signal plan
+        self.last_signal = {}
+
         self.min_green = min_green
         self.max_green = max_green
         self.factor = factor
@@ -27,11 +30,8 @@ class SignalController:
         self.weights = {
 
             "car": 1.0,
-
             "van": 1.3,
-
             "bus": 2.5,
-
             "others": 1.0
 
         }
@@ -83,6 +83,9 @@ class SignalController:
 
             }
 
+        # Save latest signal plan
+        self.last_signal = plan
+
         return plan
 
     # -----------------------------------------------------
@@ -99,7 +102,7 @@ class SignalController:
 
             print(lane)
 
-            print("-"*25)
+            print("-" * 25)
 
             print(f"Density Score : {info['score']}")
 

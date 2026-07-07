@@ -104,7 +104,9 @@ def home():
 
     return {
 
-        "project": "AI Smart Traffic Signal Control",
+        "project": "TrafficIQ",
+
+        "version": "1.0",
 
         "status": "Running"
 
@@ -264,3 +266,32 @@ def video_feed():
         media_type="multipart/x-mixed-replace; boundary=frame"
 
     )
+
+# ==========================================================
+# Dashboard API
+# ==========================================================
+
+
+
+@app.get("/dashboard")
+def dashboard():
+
+    return {
+
+        "system": {
+
+            "project": "TrafficIQ",
+
+            "version": "1.0",
+
+            "backend": "Running",
+
+            "processing": app_state["running"],
+
+            "fps": app_state["fps"]
+
+        },
+
+        "dashboard": engine.get_dashboard_data()
+
+    }

@@ -15,62 +15,40 @@ setInterval(updateClock,1000);
 
 updateClock();
 
-// ======================================
+// ==========================================
 
 async function loadDashboard(){
 
     try{
 
-        const status = await getStatus();
+        const data = await getDashboard();
 
-        console.log(status);
+        console.log(data);
 
-    }
-
-    catch(error){
-
-        console.error(error);
-
-    }
-
-}
-
-loadDashboard();
-
-/* ==========================================================
-   Dashboard Data
-========================================================== */
-
-async function loadDashboard(){
-
-    try{
-
-        const status = await getStatus();
-
-        console.log(status);
-
-        // Backend Status
         document.querySelector(".live-badge").innerHTML =
-            status.processing
+            data.system.processing
             ? "🟢 LIVE"
             : "⚪ IDLE";
 
-        // FPS
         document.getElementById("fps").innerHTML =
-            status.fps;
+            data.system.fps;
 
         document.getElementById("fpsCard").innerHTML =
-            status.fps;
+            data.system.fps;
+
+        document.getElementById("vehicleCount").innerHTML =
+            data.dashboard.statistics.total_vehicles;
 
     }
 
-    catch(error){
+    catch(err){
 
-        console.error(error);
+        console.log(err);
 
     }
 
 }
+
 setInterval(loadDashboard,1000);
 
 loadDashboard();
