@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="40" viewBox="0 0 120 40" role="img" aria-label="Smart Traffic Logo">
+  <rect width="120" height="40" rx="8" fill="#2563eb"/>
+  <path d="M24 12h18v16H24z" fill="#ffffff"/>
+  <path d="M48 12h18v16H48z" fill="#93c5fd"/>
+  <path d="M72 12h18v16H72z" fill="#ffffff"/>
+  <circle cx="90" cy="20" r="8" fill="#fbbf24"/>
+</svg>

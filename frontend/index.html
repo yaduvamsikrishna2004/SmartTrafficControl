@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Traffic Dashboard</title>
+    <link rel="stylesheet" href="css/reset.css" />
+    <link rel="stylesheet" href="css/variables.css" />
+    <link rel="stylesheet" href="css/typography.css" />
+    <link rel="stylesheet" href="css/layout.css" />
+    <link rel="stylesheet" href="css/sidebar.css" />
+    <link rel="stylesheet" href="css/header.css" />
+    <link rel="stylesheet" href="css/cards.css" />
+    <link rel="stylesheet" href="css/dashboard.css" />
+    <link rel="stylesheet" href="css/animations.css" />
+    <link rel="stylesheet" href="css/responsive.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <h1>Smart Traffic Dashboard</h1>
+      <nav>
+        <a href="index.html" class="active">Dashboard</a>
+        <a href="monitor.html">Monitor</a>
+        <a href="analytics.html">Analytics</a>
+        <a href="reports.html">Reports</a>
+        <a href="settings.html">Settings</a>
+      </nav>
+    </header>
+
+    <main class="page-content">
+      <section class="card">
+        <h2>Overview</h2>
+        <p data-status>Loading system status...</p>
+      </section>
+
+      <section class="dashboard-grid" style="margin-top: 1rem;">
+        <div class="stat-card">
+          <h3>Traffic Density</h3>
+          <p>Medium</p>
+        </div>
+        <div class="stat-card">
+          <h3>Active Signals</h3>
+          <p>8</p>
+        </div>
+        <div class="stat-card">
+          <h3>AI Detections</h3>
+          <p>24</p>
+        </div>
+      </section>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="vendor/chart.min.js"></script>
+  </body>
+</html>

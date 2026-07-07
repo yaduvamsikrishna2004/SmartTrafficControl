@@ -1,0 +1,20 @@
+.sidebar {
+  background: #0f172a;
+  color: #fff;
+  padding: 1rem;
+  min-height: 100vh;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin-top: 1rem;
+}
+
+.sidebar li {
+  margin: 0.6rem 0;
+}
+
+.sidebar a {
+  color: #e2e8f0;
+}

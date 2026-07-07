@@ -1,0 +1,13 @@
+@media (max-width: 768px) {
+  .page-header {
+    padding: 1rem;
+  }
+
+  .page-header nav {
+    gap: 0.6rem;
+  }
+
+  .page-content {
+    padding: 1rem;
+  }
+}

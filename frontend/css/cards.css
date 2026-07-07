@@ -1,0 +1,14 @@
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  box-shadow: var(--shadow);
+}
+
+.stat-card {
+  background: var(--surface-alt);
+  border-left: 4px solid var(--accent);
+  padding: 1rem;
+  border-radius: var(--radius);
+}
