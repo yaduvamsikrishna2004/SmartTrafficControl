@@ -1,8 +1,56 @@
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+/* ==========================================================
+   ANIMATIONS
+========================================================== */
+
+@keyframes pulse{
+
+    0%{
+
+        opacity:1;
+
+    }
+
+    50%{
+
+        opacity:.45;
+
+    }
+
+    100%{
+
+        opacity:1;
+
+    }
+
 }
 
-.card, .stat-card {
-  animation: fadeIn 0.3s ease-out;
+@keyframes fadeUp{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(20px);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:translateY(0);
+
+    }
+
+}
+
+.kpi-card,
+.hero,
+.camera-card,
+.chart-card,
+.lane-panel,
+.decision-panel{
+
+    animation:fadeUp .6s ease;
+
 }

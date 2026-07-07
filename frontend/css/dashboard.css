@@ -1,6 +1,68 @@
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1rem;
-  margin-top: 1rem;
+/* ==========================================================
+   HERO
+========================================================== */
+
+.hero{
+
+    background:linear-gradient(
+        135deg,
+        rgba(59,130,246,.18),
+        rgba(139,92,246,.08)
+    );
+
+    border:1px solid var(--border);
+
+    border-radius:24px;
+
+    backdrop-filter:blur(24px);
+
+    padding:40px;
+
+}
+
+.hero h2{
+
+    font-size:38px;
+
+    margin-bottom:15px;
+
+}
+
+.hero p{
+
+    color:var(--text-secondary);
+
+    font-size:17px;
+
+}
+
+/* ==========================================================
+   CHART
+========================================================== */
+
+.chart-card{
+
+    min-height:320px;
+
+}
+
+/* ==========================================================
+   PANEL TITLE
+========================================================== */
+
+.lane-panel h2,
+.decision-panel h2{
+
+    margin-bottom:25px;
+
+}
+
+/* ==========================================================
+   LIVE BADGE
+========================================================== */
+
+.live-badge{
+
+    animation:pulse 2s infinite;
+
 }

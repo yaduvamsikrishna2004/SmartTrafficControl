@@ -1,5 +1,73 @@
-.page-header {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+/* ==========================================================
+   HEADER
+========================================================== */
+
+.header{
+
+    height:84px;
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:0 30px;
+
+    border-bottom:1px solid var(--border);
+
+    background:rgba(10,15,25,.7);
+
+    backdrop-filter:blur(18px);
+
+    position:sticky;
+
+    top:0;
+
+    z-index:100;
+
+}
+
+/* ======================================== */
+
+.header h1{
+
+    font-size:28px;
+
+}
+
+/* ======================================== */
+
+.header p{
+
+    color:var(--text-muted);
+
+}
+
+/* ======================================== */
+
+.header-right{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:20px;
+
+}
+
+/* ======================================== */
+
+.live-badge{
+
+    padding:10px 18px;
+
+    background:#22C55E22;
+
+    color:#22C55E;
+
+    border-radius:30px;
+
+    font-weight:700;
+
 }

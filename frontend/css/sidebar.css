@@ -1,20 +1,135 @@
-.sidebar {
-  background: #0f172a;
-  color: #fff;
-  padding: 1rem;
-  min-height: 100vh;
+/* ==========================================================
+   SIDEBAR
+========================================================== */
+
+.sidebar{
+
+    position:sticky;
+
+    top:0;
+
+    height:100vh;
+
+    background:var(--surface);
+
+    border-right:1px solid var(--border);
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:space-between;
+
+    padding:28px;
+
 }
 
-.sidebar ul {
-  list-style: none;
-  padding: 0;
-  margin-top: 1rem;
+/* ======================================== */
+
+.logo{
+
+    margin-bottom:40px;
+
 }
 
-.sidebar li {
-  margin: 0.6rem 0;
+.logo h2{
+
+    font-size:30px;
+
+    font-weight:800;
+
 }
 
-.sidebar a {
-  color: #e2e8f0;
+.logo p{
+
+    color:var(--text-muted);
+
+    margin-top:6px;
+
+}
+
+/* ======================================== */
+
+.sidebar-menu{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:8px;
+
+}
+
+/* ======================================== */
+
+.sidebar-menu a{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:14px;
+
+    padding:14px 18px;
+
+    border-radius:14px;
+
+    color:var(--text-secondary);
+
+    transition:.3s;
+
+}
+
+/* ======================================== */
+
+.sidebar-menu a:hover{
+
+    background:rgba(59,130,246,.12);
+
+    color:white;
+
+}
+
+/* ======================================== */
+
+.sidebar-menu a.active{
+
+    background:var(--primary);
+
+    color:white;
+
+}
+
+/* ======================================== */
+
+.system-panel{
+
+    margin-top:40px;
+
+}
+
+.system-panel h4{
+
+    margin-bottom:18px;
+
+    color:var(--text-muted);
+
+}
+
+/* ======================================== */
+
+.status-item{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    margin:12px 0;
+
+}
+
+.online{
+
+    color:var(--success);
+
 }
