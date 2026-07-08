@@ -5,8 +5,8 @@ Adaptive Signal Controller
 Author : Vamsi Krishna
 
 Description:
-Calculates adaptive green signal duration
-based on weighted traffic density.
+Calculates adaptive traffic signal timing.
+Supports Emergency Vehicle Priority Override.
 ============================================================
 """
 
@@ -17,16 +17,21 @@ class SignalController:
         self,
         min_green=15,
         max_green=60,
-        factor=2
+        factor=2,
+        emergency_green=60
     ):
 
-        # Store latest signal plan
+        # Latest signal plan
         self.last_signal = {}
 
         self.min_green = min_green
         self.max_green = max_green
         self.factor = factor
 
+        # Emergency override duration
+        self.emergency_green = emergency_green
+
+        # Vehicle weights
         self.weights = {
 
             "car": 1.0,
@@ -40,7 +45,9 @@ class SignalController:
         print("Adaptive Signal Controller Initialized")
         print("=" * 60)
 
-    # -----------------------------------------------------
+    # =====================================================
+    # Calculate Weighted Density Score
+    # =====================================================
 
     def calculate_score(self, lane_stats):
 
@@ -53,7 +60,9 @@ class SignalController:
 
         return round(score, 2)
 
-    # -----------------------------------------------------
+    # =====================================================
+    # Calculate Green Time
+    # =====================================================
 
     def calculate_green_time(self, score):
 
@@ -63,11 +72,49 @@ class SignalController:
 
         return round(green)
 
-    # -----------------------------------------------------
+    # =====================================================
+    # Generate Signal Plan
+    # =====================================================
 
-    def generate_signal_plan(self, class_density):
+    def generate_signal_plan(
+        self,
+        class_density,
+        emergency=None
+    ):
 
         plan = {}
+
+        # =================================================
+        # Emergency Override
+        # =================================================
+
+        if emergency and emergency.get("active", False):
+
+            lane = emergency["lane"]
+
+            plan[lane] = {
+
+                "mode": "EMERGENCY",
+
+                "vehicle": emergency["vehicle"],
+
+                "score": 999,
+
+                "green_time": self.emergency_green,
+
+                "reason": "Emergency Vehicle Detected",
+
+                "priority": "HIGH"
+
+            }
+
+            self.last_signal = plan
+
+            return plan
+
+        # =================================================
+        # Normal Adaptive AI Logic
+        # =================================================
 
         for lane, stats in class_density.items():
 
@@ -77,23 +124,30 @@ class SignalController:
 
             plan[lane] = {
 
+                "mode": "NORMAL",
+
                 "score": score,
 
-                "green_time": green
+                "green_time": green,
+
+                "reason": "Adaptive AI Density Control",
+
+                "priority": "NORMAL"
 
             }
 
-        # Save latest signal plan
         self.last_signal = plan
 
         return plan
 
-    # -----------------------------------------------------
+    # =====================================================
+    # Print Signal Plan
+    # =====================================================
 
     def print_signal_plan(self, plan):
 
         print("=" * 70)
-        print("ADAPTIVE SIGNAL PLAN")
+        print("SIGNAL PLAN")
         print("=" * 70)
 
         for lane, info in plan.items():
@@ -102,8 +156,18 @@ class SignalController:
 
             print(lane)
 
-            print("-" * 25)
+            print("-" * 30)
 
-            print(f"Density Score : {info['score']}")
+            print(f"Mode        : {info['mode']}")
 
-            print(f"Green Time    : {info['green_time']} sec")
+            if info["mode"] == "EMERGENCY":
+
+                print(f"Vehicle     : {info['vehicle']}")
+
+            print(f"Score       : {info['score']}")
+
+            print(f"Green Time  : {info['green_time']} sec")
+
+            print(f"Priority    : {info['priority']}")
+
+            print(f"Reason      : {info['reason']}")

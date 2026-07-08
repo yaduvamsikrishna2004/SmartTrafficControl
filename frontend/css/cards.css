@@ -1,32 +1,47 @@
 /* ==========================================================
-   KPI CARDS
+   KPI GRID
+========================================================== */
+
+.kpi-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+
+    gap:22px;
+
+    margin-bottom:30px;
+
+}
+
+/* ==========================================================
+   KPI CARD
 ========================================================== */
 
 .kpi-card{
-
-    background:var(--glass);
-
-    border:1px solid var(--border);
-
-    border-radius:22px;
-
-    backdrop-filter:blur(24px);
-
-    box-shadow:var(--shadow-sm);
-
-    padding:24px;
-
-    transition:all .35s ease;
-
-    cursor:pointer;
 
     position:relative;
 
     overflow:hidden;
 
+    padding:26px;
+
+    border-radius:22px;
+
+    background:rgba(30,41,59,.85);
+
+    border:1px solid rgba(255,255,255,.08);
+
+    backdrop-filter:blur(20px);
+
+    transition:.35s ease;
+
+    box-shadow:
+        0 12px 35px rgba(0,0,0,.22);
+
 }
 
-/* Gradient Top Border */
+/* Top Gradient */
 
 .kpi-card::before{
 
@@ -34,9 +49,9 @@
 
     position:absolute;
 
-    left:0;
-
     top:0;
+
+    left:0;
 
     width:100%;
 
@@ -44,93 +59,122 @@
 
     background:linear-gradient(
         90deg,
-        var(--primary),
-        var(--purple)
+        #3b82f6,
+        #06b6d4
     );
 
 }
 
-/* Hover Effect */
+/* Glow */
+
+.kpi-card::after{
+
+    content:"";
+
+    position:absolute;
+
+    top:-70px;
+
+    right:-70px;
+
+    width:140px;
+
+    height:140px;
+
+    border-radius:50%;
+
+    background:rgba(59,130,246,.12);
+
+}
+
+/* Hover */
 
 .kpi-card:hover{
 
-    transform:translateY(-6px);
+    transform:translateY(-8px);
 
-    box-shadow:var(--shadow-lg);
+    border-color:rgba(59,130,246,.30);
 
-}
-
-/* Title */
-
-.kpi-card h3{
-
-    color:var(--text-muted);
-
-    font-size:15px;
-
-    margin-bottom:18px;
-
-}
-
-/* Value */
-
-.kpi-card h2{
-
-    font-size:34px;
-
-    font-weight:700;
-
-}
-
-/* Small Trend */
-
-.card-trend{
-
-    margin-top:15px;
-
-    color:var(--success);
-
-    font-size:14px;
+    box-shadow:
+        0 25px 45px rgba(0,0,0,.35);
 
 }
 
 /* ==========================================================
-   BUTTON
+   ICON
 ========================================================== */
 
-.btn-primary{
+.kpi-icon{
 
-    padding:14px 28px;
+    width:58px;
+
+    height:58px;
 
     border-radius:16px;
 
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    margin-bottom:20px;
+
     background:linear-gradient(
         135deg,
-        var(--primary),
-        var(--primary-dark)
+        #2563eb,
+        #3b82f6
     );
 
     color:white;
 
-    font-weight:600;
-
-    transition:.3s;
-
 }
 
-.btn-primary:hover{
+.kpi-icon svg{
 
-    transform:translateY(-3px);
+    width:28px;
 
-    box-shadow:0 15px 30px rgba(59,130,246,.35);
+    height:28px;
 
 }
 
 /* ==========================================================
-   CAMERA
+   TITLE
 ========================================================== */
 
-.card-header{
+.kpi-card h3{
+
+    font-size:14px;
+
+    color:#94a3b8;
+
+    margin-bottom:10px;
+
+    font-weight:500;
+
+}
+
+/* ==========================================================
+   VALUE
+========================================================== */
+
+.kpi-card h2{
+
+    font-size:38px;
+
+    font-weight:800;
+
+    color:#ffffff;
+
+    margin-bottom:16px;
+
+}
+
+/* ==========================================================
+   FOOTER
+========================================================== */
+
+.kpi-footer{
 
     display:flex;
 
@@ -138,161 +182,114 @@
 
     align-items:center;
 
-    padding:20px;
+}
+
+.kpi-change{
+
+    color:#10b981;
+
+    font-size:13px;
+
+    font-weight:700;
 
 }
 
-.card-header h2{
+.kpi-status{
 
-    font-size:22px;
-
-}
-
-.camera-card{
-
-    position:relative;
-
-}
-
-.camera-card img{
-
-    width:100%;
-
-    border-radius:20px;
-
-}
-
-/* Overlay */
-
-.camera-overlay{
-
-    position:absolute;
-
-    left:20px;
-
-    top:20px;
-
-    display:flex;
-
-    gap:12px;
-
-}
-
-.overlay-chip{
-
-    padding:8px 14px;
-
-    border-radius:20px;
-
-    background:rgba(0,0,0,.55);
-
-    backdrop-filter:blur(15px);
-
-    color:white;
+    color:#94a3b8;
 
     font-size:13px;
 
 }
 
 /* ==========================================================
-   LANE CARD
+   STATUS COLORS
 ========================================================== */
 
-.lane-card{
+.status-success{
 
-    background:var(--surface-2);
-
-    border-radius:18px;
-
-    padding:20px;
-
-    margin-bottom:18px;
-
-    transition:.3s;
+    color:#22c55e;
 
 }
 
-.lane-card:hover{
+.status-warning{
 
-    transform:translateY(-4px);
-
-}
-
-.lane-name{
-
-    font-size:18px;
-
-    font-weight:700;
+    color:#f59e0b;
 
 }
 
-.lane-count{
+.status-danger{
 
-    font-size:34px;
-
-    margin:15px 0;
-
-}
-
-.progress{
-
-    width:100%;
-
-    height:8px;
-
-    background:#23314B;
-
-    border-radius:50px;
-
-    overflow:hidden;
-
-}
-
-.progress span{
-
-    display:block;
-
-    height:100%;
-
-    width:70%;
-
-    background:linear-gradient(
-        90deg,
-        var(--green),
-        var(--primary)
-    );
+    color:#ef4444;
 
 }
 
 /* ==========================================================
-   AI DECISION
+   SPECIAL COLORS
 ========================================================== */
 
-.decision-panel{
+.card-blue::before{
 
-    display:flex;
-
-    flex-direction:column;
-
-    gap:18px;
+    background:linear-gradient(90deg,#3b82f6,#2563eb);
 
 }
 
-.ai-score{
+.card-green::before{
 
-    font-size:52px;
-
-    font-weight:800;
-
-    color:var(--primary);
+    background:linear-gradient(90deg,#22c55e,#16a34a);
 
 }
 
-.reason{
+.card-orange::before{
 
-    color:var(--text-secondary);
-
-    line-height:1.7;
+    background:linear-gradient(90deg,#f59e0b,#ea580c);
 
 }
 
+.card-red::before{
+
+    background:linear-gradient(90deg,#ef4444,#dc2626);
+
+}
+
+.card-purple::before{
+
+    background:linear-gradient(90deg,#8b5cf6,#7c3aed);
+
+}
+
+.card-cyan::before{
+
+    background:linear-gradient(90deg,#06b6d4,#0891b2);
+
+}
+
+/* ==========================================================
+   ANIMATION
+========================================================== */
+
+.kpi-card{
+
+    animation:fadeUp .6s ease;
+
+}
+
+@keyframes fadeUp{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(30px);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:translateY(0);
+
+    }
+
+}

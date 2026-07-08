@@ -4,7 +4,7 @@
 
 .header{
 
-    height:84px;
+    height:90px;
 
     display:flex;
 
@@ -12,39 +12,54 @@
 
     align-items:center;
 
-    padding:0 30px;
+    padding:0 35px;
 
-    border-bottom:1px solid var(--border);
+    margin-bottom:30px;
 
-    background:rgba(10,15,25,.7);
+    background:rgba(30,41,59,.75);
 
-    backdrop-filter:blur(18px);
+    backdrop-filter:blur(20px);
 
-    position:sticky;
+    -webkit-backdrop-filter:blur(20px);
 
-    top:0;
+    border:1px solid rgba(255,255,255,.08);
 
-    z-index:100;
+    border-radius:20px;
+
+    box-shadow:
+        0 8px 30px rgba(0,0,0,.25);
 
 }
 
-/* ======================================== */
+/* ==========================================================
+   HEADER LEFT
+========================================================== */
 
 .header h1{
 
-    font-size:28px;
+    font-size:32px;
+
+    font-weight:700;
+
+    color:var(--text-primary);
+
+    letter-spacing:.5px;
+
+    margin-bottom:6px;
 
 }
-
-/* ======================================== */
 
 .header p{
 
-    color:var(--text-muted);
+    font-size:15px;
+
+    color:var(--text-secondary);
 
 }
 
-/* ======================================== */
+/* ==========================================================
+   HEADER RIGHT
+========================================================== */
 
 .header-right{
 
@@ -52,22 +67,314 @@
 
     align-items:center;
 
-    gap:20px;
+    gap:22px;
 
 }
 
-/* ======================================== */
+/* ==========================================================
+   LIVE BADGE
+========================================================== */
 
 .live-badge{
 
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
     padding:10px 18px;
 
-    background:#22C55E22;
+    border-radius:50px;
 
-    color:#22C55E;
+    background:rgba(16,185,129,.15);
 
-    border-radius:30px;
+    border:1px solid rgba(16,185,129,.30);
+
+    color:#10b981;
+
+    font-size:14px;
 
     font-weight:700;
+
+    letter-spacing:.5px;
+
+    animation:livePulse 2s infinite;
+
+}
+
+/* ==========================================================
+   CLOCK
+========================================================== */
+
+#clock{
+
+    min-width:110px;
+
+    text-align:center;
+
+    font-size:15px;
+
+    font-weight:600;
+
+    color:var(--text-primary);
+
+    background:rgba(255,255,255,.05);
+
+    padding:10px 18px;
+
+    border-radius:12px;
+
+    border:1px solid rgba(255,255,255,.08);
+
+}
+
+/* ==========================================================
+   HEADER BUTTONS
+========================================================== */
+
+.header-btn{
+
+    width:44px;
+
+    height:44px;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    border-radius:12px;
+
+    background:rgba(255,255,255,.05);
+
+    border:1px solid rgba(255,255,255,.08);
+
+    color:var(--text-primary);
+
+    cursor:pointer;
+
+    transition:.3s ease;
+
+}
+
+.header-btn:hover{
+
+    background:rgba(59,130,246,.15);
+
+    border-color:rgba(59,130,246,.4);
+
+    color:#3b82f6;
+
+    transform:translateY(-2px);
+
+}
+
+.header-btn svg{
+
+    width:20px;
+
+    height:20px;
+
+}
+
+/* ==========================================================
+   USER PROFILE
+========================================================== */
+
+.user-profile{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+
+    padding:8px 14px;
+
+    background:rgba(255,255,255,.05);
+
+    border:1px solid rgba(255,255,255,.08);
+
+    border-radius:16px;
+
+    transition:.3s;
+
+    cursor:pointer;
+
+}
+
+.user-profile:hover{
+
+    background:rgba(59,130,246,.12);
+
+}
+
+.user-avatar{
+
+    width:42px;
+
+    height:42px;
+
+    border-radius:50%;
+
+    background:linear-gradient(
+        135deg,
+        #3b82f6,
+        #2563eb
+    );
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    color:#fff;
+
+    font-size:18px;
+
+    font-weight:700;
+
+}
+
+.user-info{
+
+    display:flex;
+
+    flex-direction:column;
+
+}
+
+.user-name{
+
+    color:var(--text-primary);
+
+    font-size:14px;
+
+    font-weight:600;
+
+}
+
+.user-role{
+
+    color:var(--text-secondary);
+
+    font-size:12px;
+
+}
+
+/* ==========================================================
+   SEARCH BAR
+========================================================== */
+
+.search-box{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    width:280px;
+
+    background:rgba(255,255,255,.05);
+
+    border:1px solid rgba(255,255,255,.08);
+
+    border-radius:14px;
+
+    padding:10px 16px;
+
+}
+
+.search-box input{
+
+    flex:1;
+
+    background:none;
+
+    border:none;
+
+    outline:none;
+
+    color:var(--text-primary);
+
+    font-size:14px;
+
+}
+
+.search-box input::placeholder{
+
+    color:var(--text-secondary);
+
+}
+
+.search-box svg{
+
+    width:18px;
+
+    height:18px;
+
+    color:var(--text-secondary);
+
+}
+
+/* ==========================================================
+   NOTIFICATION BADGE
+========================================================== */
+
+.notification{
+
+    position:relative;
+
+}
+
+.notification::after{
+
+    content:"";
+
+    position:absolute;
+
+    top:8px;
+
+    right:8px;
+
+    width:10px;
+
+    height:10px;
+
+    background:#ef4444;
+
+    border-radius:50%;
+
+    border:2px solid var(--card-bg);
+
+}
+
+/* ==========================================================
+   LIVE ANIMATION
+========================================================== */
+
+@keyframes livePulse{
+
+    0%{
+
+        box-shadow:0 0 0 0 rgba(16,185,129,.45);
+
+    }
+
+    70%{
+
+        box-shadow:0 0 0 12px rgba(16,185,129,0);
+
+    }
+
+    100%{
+
+        box-shadow:0 0 0 0 rgba(16,185,129,0);
+
+    }
 
 }

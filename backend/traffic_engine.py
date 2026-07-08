@@ -17,6 +17,7 @@ from backend.lane_manager import LaneManager
 from backend.counter import VehicleCounter
 from backend.density import DensityCalculator
 from backend.signal_controller import SignalController
+from backend.emergency import EmergencyDetector
 
 
 class TrafficEngine:
@@ -36,6 +37,8 @@ class TrafficEngine:
         self.density = DensityCalculator()
 
         self.signal = SignalController()
+
+        self.emergency = EmergencyDetector()
 
         # ====================================================
         # Runtime Information
@@ -58,6 +61,12 @@ class TrafficEngine:
         self.latest_density = {}
 
         self.latest_signals = {}
+
+        self.latest_emergency = {
+
+            "active": False
+
+        }
 
         print("=" * 60)
         print("Traffic Engine Initialized")
@@ -84,6 +93,12 @@ class TrafficEngine:
         lane_objects = self.lane_manager.assign_lanes(tracks)
 
         # ----------------------------------------------------
+        # Emergency Detection
+        # ----------------------------------------------------
+
+        emergency = self.emergency.detect(lane_objects)
+
+        # ----------------------------------------------------
         # Vehicle Counter
         # ----------------------------------------------------
 
@@ -104,7 +119,8 @@ class TrafficEngine:
         # ----------------------------------------------------
 
         signal_plan = self.signal.generate_signal_plan(
-            class_density
+            class_density,
+            emergency
         )
 
         # ----------------------------------------------------
@@ -127,6 +143,8 @@ class TrafficEngine:
 
         self.latest_signals = signal_plan
 
+        self.latest_emergency = emergency
+
         # ----------------------------------------------------
         # Processing Time
         # ----------------------------------------------------
@@ -141,6 +159,10 @@ class TrafficEngine:
 
         )
 
+        # ----------------------------------------------------
+        # Return Complete Pipeline Result
+        # ----------------------------------------------------
+
         return {
 
             "frame": annotated,
@@ -153,7 +175,9 @@ class TrafficEngine:
 
             "signals": signal_plan,
 
-            "processing_time": self.processing_time
+            "processing_time": self.processing_time,
+
+            "emergency": emergency
 
         }
 
@@ -190,7 +214,7 @@ class TrafficEngine:
         return self.latest_tracks
 
     # ========================================================
-    # Get Frame
+    # Get Latest Frame
     # ========================================================
 
     def get_latest_frame(self):
@@ -257,7 +281,9 @@ class TrafficEngine:
 
             "processing_time": self.processing_time,
 
-            "tracked_vehicles": len(self.latest_tracks)
+            "tracked_vehicles": len(self.latest_tracks),
+
+            "emergency": self.latest_emergency
 
         }
 
@@ -273,6 +299,8 @@ class TrafficEngine:
 
         self.signal = SignalController()
 
+        self.emergency = EmergencyDetector()
+
         self.processing_time = 0
 
         self.latest_frame = None
@@ -284,6 +312,12 @@ class TrafficEngine:
         self.latest_density = {}
 
         self.latest_signals = {}
+
+        self.latest_emergency = {
+
+            "active": False
+
+        }
 
         print("=" * 60)
         print("Traffic Engine Reset")

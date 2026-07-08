@@ -4,15 +4,23 @@
 
 .sidebar{
 
-    position:sticky;
-
-    top:0;
+    width:280px;
 
     height:100vh;
 
-    background:var(--surface);
+    position:fixed;
 
-    border-right:1px solid var(--border);
+    left:0;
+
+    top:0;
+
+    background:linear-gradient(
+        180deg,
+        #111827 0%,
+        #0f172a 100%
+    );
+
+    border-right:1px solid rgba(255,255,255,.08);
 
     display:flex;
 
@@ -20,35 +28,54 @@
 
     justify-content:space-between;
 
-    padding:28px;
+    padding:28px 22px;
+
+    overflow:hidden;
+
+    z-index:1000;
+
+    box-shadow:
+    10px 0 35px rgba(0,0,0,.35);
 
 }
 
-/* ======================================== */
+/* ==========================================================
+   LOGO
+========================================================== */
 
 .logo{
 
-    margin-bottom:40px;
+    margin-bottom:45px;
 
 }
 
 .logo h2{
 
-    font-size:30px;
+    font-size:32px;
 
     font-weight:800;
+
+    color:#ffffff;
+
+    letter-spacing:.5px;
 
 }
 
 .logo p{
 
-    color:var(--text-muted);
+    margin-top:8px;
 
-    margin-top:6px;
+    font-size:13px;
+
+    color:#94a3b8;
+
+    line-height:1.5;
 
 }
 
-/* ======================================== */
+/* ==========================================================
+   MENU
+========================================================== */
 
 .sidebar-menu{
 
@@ -60,63 +87,131 @@
 
 }
 
-/* ======================================== */
-
 .sidebar-menu a{
 
     display:flex;
 
     align-items:center;
 
-    gap:14px;
+    gap:15px;
 
-    padding:14px 18px;
+    text-decoration:none;
+
+    color:#cbd5e1;
+
+    font-size:15px;
+
+    font-weight:500;
+
+    padding:15px 18px;
 
     border-radius:14px;
 
-    color:var(--text-secondary);
+    transition:.35s;
 
-    transition:.3s;
+    position:relative;
+
+    overflow:hidden;
 
 }
 
-/* ======================================== */
+/* Left Active Bar */
+
+.sidebar-menu a::before{
+
+    content:"";
+
+    position:absolute;
+
+    left:0;
+
+    top:10px;
+
+    width:4px;
+
+    height:0;
+
+    background:#3b82f6;
+
+    border-radius:10px;
+
+    transition:.35s;
+
+}
+
+/* Hover */
 
 .sidebar-menu a:hover{
 
     background:rgba(59,130,246,.12);
 
-    color:white;
+    color:#ffffff;
+
+    transform:translateX(6px);
 
 }
 
-/* ======================================== */
+/* Active */
 
 .sidebar-menu a.active{
 
-    background:var(--primary);
+    background:rgba(59,130,246,.18);
 
-    color:white;
+    color:#ffffff;
+
+    box-shadow:
+
+    inset 0 0 0 1px rgba(59,130,246,.2);
 
 }
 
-/* ======================================== */
+.sidebar-menu a.active::before{
+
+    height:32px;
+
+}
+
+.sidebar-menu i{
+
+    width:20px;
+
+    height:20px;
+
+}
+
+/* ==========================================================
+   SYSTEM HEALTH PANEL
+========================================================== */
 
 .system-panel{
 
-    margin-top:40px;
+    background:rgba(255,255,255,.04);
+
+    border:1px solid rgba(255,255,255,.06);
+
+    border-radius:18px;
+
+    padding:22px;
+
+    backdrop-filter:blur(18px);
 
 }
 
 .system-panel h4{
 
+    color:#ffffff;
+
     margin-bottom:18px;
 
-    color:var(--text-muted);
+    font-size:15px;
+
+    font-weight:700;
 
 }
 
-/* ======================================== */
+/* ==========================================================
+   STATUS ITEMS
+========================================================== */
 
 .status-item{
 
@@ -124,12 +219,118 @@
 
     justify-content:space-between;
 
-    margin:12px 0;
+    align-items:center;
+
+    padding:10px 0;
+
+    color:#cbd5e1;
+
+    font-size:14px;
+
+    border-bottom:1px solid rgba(255,255,255,.05);
 
 }
 
+.status-item:last-child{
+
+    border:none;
+
+}
+
+/* ==========================================================
+   ONLINE
+========================================================== */
+
 .online{
 
-    color:var(--success);
+    color:#22c55e;
+
+    font-weight:600;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+}
+
+.online::before{
+
+    content:"";
+
+    width:9px;
+
+    height:9px;
+
+    border-radius:50%;
+
+    background:#22c55e;
+
+    animation:pulse 1.8s infinite;
+
+}
+
+/* ==========================================================
+   FPS
+========================================================== */
+
+#fps{
+
+    color:#38bdf8;
+
+    font-weight:700;
+
+    font-size:15px;
+
+}
+
+/* ==========================================================
+   SCROLLBAR
+========================================================== */
+
+.sidebar::-webkit-scrollbar{
+
+    width:5px;
+
+}
+
+.sidebar::-webkit-scrollbar-thumb{
+
+    background:#334155;
+
+    border-radius:20px;
+
+}
+
+/* ==========================================================
+   ANIMATION
+========================================================== */
+
+@keyframes pulse{
+
+    0%{
+
+        transform:scale(1);
+
+        opacity:1;
+
+    }
+
+    50%{
+
+        transform:scale(1.4);
+
+        opacity:.4;
+
+    }
+
+    100%{
+
+        transform:scale(1);
+
+        opacity:1;
+
+    }
 
 }
