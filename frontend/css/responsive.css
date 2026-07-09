@@ -1,13 +1,347 @@
-@media (max-width: 768px) {
-  .page-header {
-    padding: 1rem;
-  }
+/* ==========================================================
+   LARGE DESKTOP (1600px+)
+========================================================== */
 
-  .page-header nav {
-    gap: 0.6rem;
-  }
+@media (min-width:1600px){
 
-  .page-content {
-    padding: 1rem;
-  }
+    .kpi-grid{
+
+        grid-template-columns:repeat(6,1fr);
+
+    }
+
+}
+
+/* ==========================================================
+   LAPTOP (1400px)
+========================================================== */
+
+@media (max-width:1400px){
+
+    .hero{
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+    }
+
+    .hero-status{
+
+        width:100%;
+
+    }
+
+}
+
+/* ==========================================================
+   SMALL LAPTOP (1200px)
+========================================================== */
+
+@media (max-width:1200px){
+
+    .chart-grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .middle-grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+}
+
+/* ==========================================================
+   TABLET (992px)
+========================================================== */
+
+@media (max-width:992px){
+
+    .sidebar{
+
+        width:90px;
+
+    }
+
+    .sidebar .logo p,
+
+    .sidebar-menu a span,
+
+    .system-panel{
+
+        display:none;
+
+    }
+
+    .sidebar h2{
+
+        font-size:20px;
+
+        text-align:center;
+
+    }
+
+    .sidebar-menu a{
+
+        justify-content:center;
+
+        padding:18px;
+
+    }
+
+    .main{
+
+        margin-left:0;
+
+    }
+
+    .header{
+
+        flex-direction:column;
+
+        gap:20px;
+
+        height:auto;
+
+        padding:25px;
+
+    }
+
+    .header-right{
+
+        width:100%;
+
+        justify-content:space-between;
+
+        flex-wrap:wrap;
+
+    }
+
+    .search-box{
+
+        width:100%;
+
+    }
+
+    .hero{
+
+        padding:30px;
+
+    }
+
+    .hero h2{
+
+        font-size:30px;
+
+    }
+
+}
+
+/* ==========================================================
+   MOBILE (768px)
+========================================================== */
+
+@media (max-width:768px){
+
+    .sidebar{
+
+        position:fixed;
+
+        left:-280px;
+
+        transition:.4s;
+
+        z-index:2000;
+
+    }
+
+    .sidebar.active{
+
+        left:0;
+
+    }
+
+    .main{
+
+        margin-left:0;
+
+        padding:20px;
+
+    }
+
+    .header{
+
+        padding:20px;
+
+    }
+
+    .header-right{
+
+        gap:12px;
+
+    }
+
+    .hero{
+
+        padding:25px;
+
+    }
+
+    .hero h2{
+
+        font-size:26px;
+
+    }
+
+    .hero-actions{
+
+        flex-direction:column;
+
+        width:100%;
+
+    }
+
+    .btn-primary,
+
+    .btn-secondary{
+
+        width:100%;
+
+    }
+
+    .kpi-grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .camera-card img{
+
+        height:350px;
+
+    }
+
+    .chart-grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+}
+
+/* ==========================================================
+   SMALL MOBILE (576px)
+========================================================== */
+
+@media (max-width:576px){
+
+    body{
+
+        font-size:14px;
+
+    }
+
+    .header h1{
+
+        font-size:26px;
+
+    }
+
+    .hero h2{
+
+        font-size:22px;
+
+    }
+
+    .hero p{
+
+        font-size:14px;
+
+    }
+
+    .hero-tags{
+
+        gap:8px;
+
+    }
+
+    .hero-tag{
+
+        font-size:12px;
+
+        padding:8px 12px;
+
+    }
+
+    .kpi-card{
+
+        padding:20px;
+
+    }
+
+    .kpi-card h2{
+
+        font-size:30px;
+
+    }
+
+    .camera-card img{
+
+        height:280px;
+
+    }
+
+    .chart-card{
+
+        padding:15px;
+
+    }
+
+}
+
+/* ==========================================================
+   EXTRA SMALL (400px)
+========================================================== */
+
+@media (max-width:400px){
+
+    .header{
+
+        padding:15px;
+
+    }
+
+    .hero{
+
+        padding:20px;
+
+    }
+
+    .hero h2{
+
+        font-size:20px;
+
+    }
+
+    .hero-actions{
+
+        gap:10px;
+
+    }
+
+    .user-profile{
+
+        display:none;
+
+    }
+
+    .search-box{
+
+        display:none;
+
+    }
+
 }

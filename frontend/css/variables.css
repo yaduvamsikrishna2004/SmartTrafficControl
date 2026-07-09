@@ -35,10 +35,12 @@
    ========================================================== */
 
 --text:#F8FAFC;
-
+--text-primary:#F8FAFC;
 --text-secondary:#CBD5E1;
-
 --text-muted:#94A3B8;
+
+--font-family:"Inter",sans-serif;
+--card-bg:rgba(30,41,59,.88);
 
 /* ==========================================================
    Shadows

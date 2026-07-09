@@ -1,33 +1,196 @@
-/* ==========================================================
-   TrafficIQ API
-========================================================== */
+/*
+============================================================
+TrafficIQ
 
-const API = "http://127.0.0.1:8000";
+API Service
+
+Author : Vamsi Krishna
+
+Description:
+Handles all communication with the FastAPI backend.
+============================================================
+*/
+
+// ==========================================================
+// Generic GET Request
+// ==========================================================
+
+async function get(endpoint){
+
+    try{
+
+        const response = await fetch(endpoint);
+
+        if(!response.ok){
+
+            throw new Error(`HTTP ${response.status}`);
+
+        }
+
+        return await response.json();
+
+    }
+
+    catch(error){
+
+        console.error("GET Error:", error);
+
+        return null;
+
+    }
+
+}
+
+// ==========================================================
+// Generic POST Request
+// ==========================================================
+
+async function post(endpoint, body = {}){
+
+    try{
+
+        const response = await fetch(endpoint,{
+
+            method:"POST",
+
+            headers:{
+
+                "Content-Type":"application/json"
+
+            },
+
+            body:JSON.stringify(body)
+
+        });
+
+        if(!response.ok){
+
+            throw new Error(`HTTP ${response.status}`);
+
+        }
+
+        return await response.json();
+
+    }
+
+    catch(error){
+
+        console.error("POST Error:", error);
+
+        return null;
+
+    }
+
+}
+
+// ==========================================================
+// Dashboard
+// ==========================================================
 
 async function getDashboard(){
 
-    const response = await fetch(`${API}/dashboard`);
-
-    return await response.json();
+    return await get(API.dashboard);
 
 }
+
+// ==========================================================
+// Analytics
+// ==========================================================
+
+async function getAnalytics(){
+
+    return await get(API.analytics);
+
+}
+
+// ==========================================================
+// Density
+// ==========================================================
+
+async function getDensity(){
+
+    return await get(API.density);
+
+}
+
+// ==========================================================
+// Traffic Counter
+// ==========================================================
+
+async function getTraffic(){
+
+    return await get(API.traffic);
+
+}
+
+// ==========================================================
+// Signals
+// ==========================================================
+
+async function getSignals(){
+
+    return await get(API.signals);
+
+}
+
+// ==========================================================
+// Start Video
+// ==========================================================
 
 async function startVideo(){
 
-    return await fetch(`${API}/start-video`,{
-
-        method:"POST"
-
-    });
+    return await post(API.startVideo);
 
 }
 
+// ==========================================================
+// Stop Video
+// ==========================================================
+
 async function stopVideo(){
 
-    return await fetch(`${API}/stop-video`,{
+    return await post(API.stopVideo);
 
-        method:"POST"
+}
 
-    });
+// ==========================================================
+// Health Check
+// ==========================================================
+
+async function checkBackend(){
+
+    try{
+
+        const response = await fetch(API.dashboard);
+
+        return response.ok;
+
+    }
+
+    catch{
+
+        return false;
+
+    }
+
+}
+
+// ==========================================================
+// Dashboard Refresh
+// ==========================================================
+
+async function fetchDashboard(){
+
+    const data = await getDashboard();
+
+    if(!data){
+
+        console.warn("Dashboard data unavailable.");
+
+        return null;
+
+    }
+
+    return data;
 
 }

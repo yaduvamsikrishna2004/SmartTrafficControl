@@ -1,36 +1,35 @@
 /* ==========================================================
-   ANIMATIONS
+   GLOBAL ANIMATIONS
 ========================================================== */
 
-@keyframes pulse{
+*{
 
-    0%{
-
-        opacity:1;
-
-    }
-
-    50%{
-
-        opacity:.45;
-
-    }
-
-    100%{
-
-        opacity:1;
-
-    }
+    transition:
+        background .3s ease,
+        color .3s ease,
+        border .3s ease,
+        box-shadow .3s ease,
+        transform .3s ease;
 
 }
 
-@keyframes fadeUp{
+/* ==========================================================
+   PAGE LOAD
+========================================================== */
+
+.app{
+
+    animation:fadeIn .8s ease;
+
+}
+
+@keyframes fadeIn{
 
     from{
 
         opacity:0;
 
-        transform:translateY(20px);
+        transform:translateY(15px);
 
     }
 
@@ -44,13 +43,470 @@
 
 }
 
-.kpi-card,
-.hero,
-.camera-card,
-.chart-card,
-.lane-panel,
-.decision-panel{
+/* ==========================================================
+   LOADER
+========================================================== */
 
-    animation:fadeUp .6s ease;
+#loader{
+
+    position:fixed;
+
+    inset:0;
+
+    background:#0F172A;
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:center;
+
+    align-items:center;
+
+    z-index:99999;
+
+    animation:loaderFade 1s forwards;
+
+    animation-delay:1.5s;
+
+}
+
+#loader h1{
+
+    font-size:48px;
+
+    color:white;
+
+    margin-bottom:15px;
+
+}
+
+#loader p{
+
+    color:#94A3B8;
+
+    font-size:18px;
+
+}
+
+@keyframes loaderFade{
+
+    to{
+
+        opacity:0;
+
+        visibility:hidden;
+
+    }
+
+}
+
+/* ==========================================================
+   SIDEBAR
+========================================================== */
+
+.sidebar{
+
+    animation:slideLeft .7s ease;
+
+}
+
+@keyframes slideLeft{
+
+    from{
+
+        transform:translateX(-60px);
+
+        opacity:0;
+
+    }
+
+    to{
+
+        transform:translateX(0);
+
+        opacity:1;
+
+    }
+
+}
+
+/* ==========================================================
+   HEADER
+========================================================== */
+
+.header{
+
+    animation:slideTop .8s ease;
+
+}
+
+@keyframes slideTop{
+
+    from{
+
+        transform:translateY(-40px);
+
+        opacity:0;
+
+    }
+
+    to{
+
+        transform:translateY(0);
+
+        opacity:1;
+
+    }
+
+}
+
+/* ==========================================================
+   HERO
+========================================================== */
+
+.hero{
+
+    animation:heroFade .9s ease;
+
+}
+
+@keyframes heroFade{
+
+    from{
+
+        opacity:0;
+
+        transform:scale(.97);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:scale(1);
+
+    }
+
+}
+
+/* ==========================================================
+   KPI CARDS
+========================================================== */
+
+.kpi-card{
+
+    animation:cardUp .7s ease;
+
+}
+
+.kpi-card:nth-child(1){
+
+    animation-delay:.05s;
+
+}
+
+.kpi-card:nth-child(2){
+
+    animation-delay:.1s;
+
+}
+
+.kpi-card:nth-child(3){
+
+    animation-delay:.15s;
+
+}
+
+.kpi-card:nth-child(4){
+
+    animation-delay:.2s;
+
+}
+
+.kpi-card:nth-child(5){
+
+    animation-delay:.25s;
+
+}
+
+.kpi-card:nth-child(6){
+
+    animation-delay:.3s;
+
+}
+
+@keyframes cardUp{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(40px);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:translateY(0);
+
+    }
+
+}
+
+/* ==========================================================
+   CARD HOVER
+========================================================== */
+
+.kpi-card:hover,
+
+.camera-card:hover,
+
+.chart-card:hover,
+
+.lane-card:hover,
+
+.decision-panel:hover{
+
+    transform:translateY(-6px);
+
+}
+
+/* ==========================================================
+   BUTTONS
+========================================================== */
+
+.btn-primary:hover,
+
+.btn-secondary:hover{
+
+    transform:translateY(-3px) scale(1.02);
+
+}
+
+.btn-primary:active,
+
+.btn-secondary:active{
+
+    transform:scale(.98);
+
+}
+
+/* ==========================================================
+   LIVE BADGE
+========================================================== */
+
+.live-badge{
+
+    animation:liveGlow 2s infinite;
+
+}
+
+@keyframes liveGlow{
+
+    0%{
+
+        box-shadow:0 0 0 rgba(34,197,94,.4);
+
+    }
+
+    50%{
+
+        box-shadow:0 0 18px rgba(34,197,94,.5);
+
+    }
+
+    100%{
+
+        box-shadow:0 0 0 rgba(34,197,94,.4);
+
+    }
+
+}
+
+/* ==========================================================
+   ONLINE STATUS
+========================================================== */
+
+.online{
+
+    animation:onlinePulse 1.8s infinite;
+
+}
+
+@keyframes onlinePulse{
+
+    0%{
+
+        opacity:1;
+
+    }
+
+    50%{
+
+        opacity:.6;
+
+    }
+
+    100%{
+
+        opacity:1;
+
+    }
+
+}
+
+/* ==========================================================
+   PROGRESS BAR
+========================================================== */
+
+.progress-bar{
+
+    animation:progressAnimation 1.4s ease;
+
+}
+
+@keyframes progressAnimation{
+
+    from{
+
+        width:0;
+
+    }
+
+}
+
+/* ==========================================================
+   CAMERA
+========================================================== */
+
+#camera{
+
+    transition:transform .4s ease;
+
+}
+
+#camera:hover{
+
+    transform:scale(1.02);
+
+}
+
+/* ==========================================================
+   CHARTS
+========================================================== */
+
+.chart-card{
+
+    animation:chartFade .8s ease;
+
+}
+
+@keyframes chartFade{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(35px);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:translateY(0);
+
+    }
+
+}
+
+/* ==========================================================
+   TIMELINE
+========================================================== */
+
+.timeline-item{
+
+    animation:timelineSlide .6s ease;
+
+}
+
+@keyframes timelineSlide{
+
+    from{
+
+        opacity:0;
+
+        transform:translateX(-20px);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:translateX(0);
+
+    }
+
+}
+
+/* ==========================================================
+   EMERGENCY
+========================================================== */
+
+.emergency-banner{
+
+    animation:emergencyFlash .8s infinite;
+
+}
+
+@keyframes emergencyFlash{
+
+    0%{
+
+        background:#ef4444;
+
+    }
+
+    50%{
+
+        background:#dc2626;
+
+    }
+
+    100%{
+
+        background:#ef4444;
+
+    }
+
+}
+
+/* ==========================================================
+   SCROLL
+========================================================== */
+
+::-webkit-scrollbar{
+
+    width:10px;
+
+}
+
+::-webkit-scrollbar-thumb{
+
+    background:#334155;
+
+    border-radius:20px;
+
+}
+
+::-webkit-scrollbar-thumb:hover{
+
+    background:#3B82F6;
 
 }

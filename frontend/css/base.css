@@ -1,24 +1,354 @@
-:root {
-  --bg: #f4f7fb;
-  --surface: #ffffff;
-  --text: #0f172a;
-  --muted: #64748b;
-  --accent: #2563eb;
-  --border: #e2e8f0;
+/* ==========================================================
+   TrafficIQ
+
+   Base Styles
+
+   Author : Vamsi Krishna
+========================================================== */
+
+/* ==========================================================
+   HTML & BODY
+========================================================== */
+
+html,
+body{
+
+    width:100%;
+
+    min-height:100%;
+
 }
 
-* {
-  box-sizing: border-box;
+body{
+
+    font-family:var(--font-family);
+
+    background:var(--bg);
+
+    color:var(--text-primary);
+
+    overflow-x:hidden;
+
+    line-height:1.6;
+
 }
 
-body {
-  margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
-  background: var(--bg);
-  color: var(--text);
+/* ==========================================================
+   ROOT APP
+========================================================== */
+
+.app{
+
+    width:100%;
+
+    min-height:100vh;
+
+    display:grid;
+
+    grid-template-columns:280px minmax(0,1fr);
+
+    background:var(--bg);
+
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+/* ==========================================================
+   MAIN CONTENT
+========================================================== */
+
+.main{
+
+    width:100%;
+
+    min-width:0;
+
+    min-height:100vh;
+
+    display:flex;
+
+    flex-direction:column;
+
+    overflow-x:hidden;
+
+    overflow-y:auto;
+
+    padding:25px;
+
+}
+
+/* ==========================================================
+   COMMON CONTAINER
+========================================================== */
+
+.container{
+
+    width:100%;
+
+    max-width:1800px;
+
+    margin:auto;
+
+}
+
+/* ==========================================================
+   SECTION
+========================================================== */
+
+section{
+
+    margin-bottom:30px;
+
+}
+
+/* ==========================================================
+   HEADINGS
+========================================================== */
+
+h1{
+
+    font-size:32px;
+
+    font-weight:700;
+
+}
+
+h2{
+
+    font-size:24px;
+
+    font-weight:600;
+
+}
+
+h3{
+
+    font-size:18px;
+
+    font-weight:600;
+
+}
+
+p{
+
+    color:var(--text-secondary);
+
+}
+
+/* ==========================================================
+   LINKS
+========================================================== */
+
+a{
+
+    text-decoration:none;
+
+    color:inherit;
+
+}
+
+/* ==========================================================
+   BUTTONS
+========================================================== */
+
+button{
+
+    font-family:inherit;
+
+    cursor:pointer;
+
+}
+
+/* ==========================================================
+   CARDS
+========================================================== */
+
+.card{
+
+    background:var(--glass);
+
+    border:1px solid var(--border);
+
+    border-radius:20px;
+
+    backdrop-filter:blur(20px);
+
+    -webkit-backdrop-filter:blur(20px);
+
+    box-shadow:var(--shadow-md);
+
+}
+
+/* ==========================================================
+   FLEX UTILITIES
+========================================================== */
+
+.flex{
+
+    display:flex;
+
+}
+
+.flex-between{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+}
+
+.flex-center{
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+}
+
+/* ==========================================================
+   GRID UTILITIES
+========================================================== */
+
+.grid{
+
+    display:grid;
+
+}
+
+.grid-2{
+
+    display:grid;
+
+    grid-template-columns:repeat(2,1fr);
+
+    gap:24px;
+
+}
+
+.grid-3{
+
+    display:grid;
+
+    grid-template-columns:repeat(3,1fr);
+
+    gap:24px;
+
+}
+
+.grid-4{
+
+    display:grid;
+
+    grid-template-columns:repeat(4,1fr);
+
+    gap:24px;
+
+}
+
+/* ==========================================================
+   STATUS COLORS
+========================================================== */
+
+.success{
+
+    color:#22C55E;
+
+}
+
+.warning{
+
+    color:#F59E0B;
+
+}
+
+.danger{
+
+    color:#EF4444;
+
+}
+
+.info{
+
+    color:#3B82F6;
+
+}
+
+/* ==========================================================
+   SCROLLBAR
+========================================================== */
+
+::-webkit-scrollbar{
+
+    width:8px;
+
+}
+
+::-webkit-scrollbar-track{
+
+    background:transparent;
+
+}
+
+::-webkit-scrollbar-thumb{
+
+    background:#334155;
+
+    border-radius:20px;
+
+}
+
+::-webkit-scrollbar-thumb:hover{
+
+    background:#3B82F6;
+
+}
+
+/* ==========================================================
+   SELECTION
+========================================================== */
+
+::selection{
+
+    background:#2563EB;
+
+    color:#fff;
+
+}
+
+/* ==========================================================
+   HIDDEN
+========================================================== */
+
+.hidden{
+
+    display:none !important;
+
+}
+
+/* ==========================================================
+   FADE
+========================================================== */
+
+.fade-in{
+
+    animation:fadeIn .5s ease;
+
+}
+
+@keyframes fadeIn{
+
+    from{
+
+        opacity:0;
+
+    }
+
+    to{
+
+        opacity:1;
+
+    }
+
 }

@@ -1,26 +1,109 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const container = document.getElementById('sidebar-root');
-  const target = container || document.querySelector('.sidebar');
+/*
+==========================================================
+TrafficIQ Sidebar
 
-  if (!target) return;
+Author : Vamsi Krishna
+==========================================================
+*/
 
-  if (!container && target.querySelector('nav')) {
-    return;
-  }
+console.log("Sidebar Component Loaded");
 
-  target.innerHTML = `
-    <div class="logo">
-      <h2>TrafficIQ</h2>
-      <p>AI Traffic Intelligence</p>
-    </div>
+// ======================================================
+// Initialize Sidebar
+// ======================================================
 
-    <nav class="sidebar-menu">
-      <a href="#" class="active"><i data-lucide="layout-dashboard"></i>Dashboard</a>
-      <a href="#"><i data-lucide="video"></i>Monitoring</a>
-      <a href="#"><i data-lucide="traffic-cone"></i>Signal Control</a>
-      <a href="#"><i data-lucide="bar-chart-3"></i>Analytics</a>
-      <a href="#"><i data-lucide="file-text"></i>Reports</a>
-      <a href="#"><i data-lucide="settings"></i>Settings</a>
-    </nav>
-  `;
+document.addEventListener("DOMContentLoaded", () => {
+
+    initializeSidebar();
+
 });
+
+// ======================================================
+
+function initializeSidebar() {
+
+    const menuItems = document.querySelectorAll(".sidebar-menu a");
+
+    menuItems.forEach(item => {
+
+        item.addEventListener("click", () => {
+
+            menuItems.forEach(link => {
+
+                link.classList.remove("active");
+
+            });
+
+            item.classList.add("active");
+
+        });
+
+    });
+
+}
+
+// ======================================================
+// Sidebar Collapse (Future Feature)
+// ======================================================
+
+function toggleSidebar() {
+
+    const sidebar = document.querySelector(".sidebar");
+
+    if (!sidebar) return;
+
+    sidebar.classList.toggle("collapsed");
+
+}
+
+// ======================================================
+// Mobile Sidebar
+// ======================================================
+
+function openSidebar() {
+
+    const sidebar = document.querySelector(".sidebar");
+
+    if (!sidebar) return;
+
+    sidebar.classList.add("show");
+
+}
+
+function closeSidebar() {
+
+    const sidebar = document.querySelector(".sidebar");
+
+    if (!sidebar) return;
+
+    sidebar.classList.remove("show");
+
+}
+
+// ======================================================
+// Resize Handling
+// ======================================================
+
+window.addEventListener("resize", () => {
+
+    if (window.innerWidth > 992) {
+
+        closeSidebar();
+
+    }
+
+});
+
+// ======================================================
+// Export (Optional)
+// ======================================================
+
+window.Sidebar = {
+
+    toggleSidebar,
+
+    openSidebar,
+
+    closeSidebar
+
+};

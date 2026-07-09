@@ -8,11 +8,11 @@
 
     height:100vh;
 
-    position:fixed;
-
-    left:0;
+    position:sticky;
 
     top:0;
+
+    align-self:start;
 
     background:linear-gradient(
         180deg,
@@ -332,5 +332,32 @@
         opacity:1;
 
     }
+
+}
+/* =====================================================
+   Collapsed Sidebar
+===================================================== */
+
+.sidebar.collapsed{
+
+    width:90px;
+
+}
+
+.sidebar.collapsed .logo p,
+.sidebar.collapsed .sidebar-menu span,
+.sidebar.collapsed .system-panel{
+
+    display:none;
+
+}
+
+/* =====================================================
+   Mobile Sidebar
+===================================================== */
+
+.sidebar.show{
+
+    left:0;
 
 }
