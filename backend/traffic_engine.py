@@ -60,6 +60,12 @@ class TrafficEngine:
 
         self.fps = 0
 
+        self.latest_confidence = 0.0
+
+        self.current_green_lane = None
+
+        self.current_green_time = 0
+
         # ====================================================
         # Latest Results
         # ====================================================
@@ -174,6 +180,21 @@ class TrafficEngine:
 
         self.latest_emergency = priority_decision
 
+        self.latest_confidence = 0.0
+        if len(lane_objects) > 0:
+            self.latest_confidence = round(
+                sum(obj.get("confidence", 0) for obj in lane_objects)
+                / len(lane_objects),
+                3
+            )
+
+        self.current_green_lane = None
+        self.current_green_time = 0
+        if len(signal_plan) > 0:
+            first_lane = next(iter(signal_plan))
+            self.current_green_lane = first_lane
+            self.current_green_time = signal_plan[first_lane].get("green_time", 0)
+
         # ----------------------------------------------------
         # Processing Time
         # ----------------------------------------------------
@@ -187,6 +208,8 @@ class TrafficEngine:
             2
 
         )
+
+        self.fps = round(1000 / self.processing_time, 2) if self.processing_time > 0 else 0
 
         # ----------------------------------------------------
         # Return Complete Pipeline Result
@@ -278,7 +301,7 @@ class TrafficEngine:
 
             others += lane.get("others", 0)
 
-        return {
+        stats = {
 
             "total_vehicles": total,
 
@@ -292,11 +315,33 @@ class TrafficEngine:
 
         }
 
+        if self.latest_confidence is not None:
+            stats["confidence"] = f"{round(self.latest_confidence * 100)}%"
+
+        return stats
+
     # ========================================================
     # Dashboard Data
     # ========================================================
 
     def get_dashboard_data(self):
+
+        lane_names = set()
+        lane_names.update(self.latest_counter.keys())
+        lane_names.update(self.latest_density.get("class_density", {}).keys())
+        lane_names.update(self.latest_signals.keys())
+
+        lane_data = {}
+        for lane in lane_names:
+            lane_data[lane] = {
+                "vehicles": self.latest_counter.get(lane, {}).get("total", 0),
+                "density": self.latest_density.get("class_density", {}).get(lane, {}).get("total", 0),
+                "score": self.latest_signals.get(lane, {}).get("score", 0),
+                "green_time": self.latest_signals.get(lane, {}).get("green_time", 0),
+                "mode": self.latest_signals.get(lane, {}).get("mode", "NORMAL"),
+                "reason": self.latest_signals.get(lane, {}).get("reason", "Adaptive AI Density Control"),
+                "priority": self.latest_signals.get(lane, {}).get("priority", "NORMAL")
+            }
 
         return {
 
@@ -309,6 +354,17 @@ class TrafficEngine:
             "statistics": self.get_statistics(),
 
             "processing_time": self.processing_time,
+
+            "fps": self.fps,
+
+            "confidence": self.latest_confidence,
+
+            "current_green": {
+                "lane": self.current_green_lane,
+                "green_time": self.current_green_time
+            },
+
+            "lane_data": lane_data,
 
             "tracked_vehicles": len(self.latest_tracks),
 
@@ -331,6 +387,14 @@ class TrafficEngine:
         self.emergency = EmergencyDetector()
 
         self.processing_time = 0
+
+        self.fps = 0
+
+        self.latest_confidence = 0.0
+
+        self.current_green_lane = None
+
+        self.current_green_time = 0
 
         self.latest_frame = None
 

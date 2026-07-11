@@ -26,15 +26,21 @@ function initializeSidebar() {
 
     menuItems.forEach(item => {
 
-        item.addEventListener("click", () => {
+        item.addEventListener("click", event => {
 
-            menuItems.forEach(link => {
+            event.preventDefault();
 
-                link.classList.remove("active");
-
-            });
+            menuItems.forEach(link => link.classList.remove("active"));
 
             item.classList.add("active");
+
+            const href = item.getAttribute("href") || "";
+            const sectionId = href.startsWith("#") ? href.substring(1) : href;
+            const section = document.getElementById(sectionId);
+
+            if (section) {
+                section.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
 
         });
 

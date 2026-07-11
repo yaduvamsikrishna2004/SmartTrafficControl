@@ -96,7 +96,10 @@ async function getDashboard(){
     // backend wraps data with { system:..., dashboard: {...} }
     if(resp && resp.dashboard){
         console.debug("Unwrapping dashboard payload");
-        return resp.dashboard;
+        return {
+            ...resp.dashboard,
+            system: resp.system || {}
+        };
     }
 
     return resp;
@@ -144,6 +147,46 @@ async function getSignals(){
 }
 
 // ==========================================================
+// Lanes
+// ==========================================================
+
+async function getLanes(){
+
+    return await get(API.lanes);
+
+}
+
+// ==========================================================
+// Emergency
+// ==========================================================
+
+async function getEmergency(){
+
+    return await get(API.emergency);
+
+}
+
+// ==========================================================
+// Health
+// ==========================================================
+
+async function getHealth(){
+
+    return await get(API.health);
+
+}
+
+// ==========================================================
+// Camera
+// ==========================================================
+
+async function getCamera(){
+
+    return await get(API.camera);
+
+}
+
+// ==========================================================
 // Start Video
 // ==========================================================
 
@@ -171,7 +214,7 @@ async function checkBackend(){
 
     try{
 
-        const response = await fetch(API.dashboard);
+        const response = await fetch(API.health);
 
         return response.ok;
 

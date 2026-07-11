@@ -115,7 +115,7 @@
         <nav class="sidebar-menu">
 
             <a
-                href="#"
+                href="#dashboardSection"
                 class="active">
 
                 <i data-lucide="layout-dashboard"></i>
@@ -124,7 +124,7 @@
 
             </a>
 
-            <a href="#">
+            <a href="#cameraSection">
 
                 <i data-lucide="video"></i>
 
@@ -132,7 +132,7 @@
 
             </a>
 
-            <a href="#">
+            <a href="#signalSection">
 
                 <i data-lucide="traffic-cone"></i>
 
@@ -140,7 +140,7 @@
 
             </a>
 
-            <a href="#">
+            <a href="#aiSection">
 
                 <i data-lucide="brain"></i>
 
@@ -148,7 +148,7 @@
 
             </a>
 
-            <a href="#">
+            <a href="#analyticsSection">
 
                 <i data-lucide="bar-chart-3"></i>
 
@@ -156,7 +156,7 @@
 
             </a>
 
-            <a href="#">
+            <a href="#reportsSection">
 
                 <i data-lucide="file-text"></i>
 
@@ -164,7 +164,7 @@
 
             </a>
 
-            <a href="#">
+            <a href="#settingsSection">
 
                 <i data-lucide="settings"></i>
 
@@ -190,7 +190,7 @@
 
             Backend
 
-            <span class="online">
+            <span id="backendStatus" class="online">
 
                 Online
 
@@ -202,7 +202,7 @@
 
             Camera
 
-            <span class="online">
+            <span id="cameraStatus" class="online">
 
                 Running
 
@@ -214,7 +214,7 @@
 
             YOLOv8
 
-            <span class="online">
+            <span id="yoloStatus" class="online">
 
                 Loaded
 
@@ -226,7 +226,7 @@
 
             ByteTrack
 
-            <span class="online">
+            <span id="byteStatus" class="online">
 
                 Active
 
@@ -254,7 +254,7 @@
 <!-- MAIN -->
 <!-- ============================================= -->
 
-<main class="main">
+<main class="main" id="dashboardSection">
 
 <!-- ============================================= -->
 <!-- HEADER -->
@@ -568,7 +568,7 @@
 
         <div class="kpi-footer">
 
-            <span class="status-warning">
+            <span id="greenTimeFooter" class="status-warning">
 
                 15 sec
 
@@ -698,7 +698,7 @@
 <!-- LIVE CAMERA -->
 <!-- ============================================= -->
 
-<section class="camera-section">
+<section class="camera-section" id="cameraSection">
 
     <div class="camera-card">
 
@@ -800,7 +800,7 @@
     <!-- LANE STATUS -->
     <!-- ========================================= -->
 
-    <div class="lane-panel">
+    <div class="lane-panel" id="signalSection">
 
         <div class="card-header">
 
@@ -1006,7 +1006,7 @@
     <!-- AI DECISION ENGINE -->
     <!-- ========================================= -->
 
-    <div class="decision-panel">
+    <div class="decision-panel" id="aiSection">
 
         <div class="card-header">
 
@@ -1206,7 +1206,7 @@
 <!-- ANALYTICS DASHBOARD -->
 <!-- ============================================= -->
 
-<section class="chart-grid">
+<section class="chart-grid" id="analyticsSection">
 
     <!-- Vehicle Trend -->
 
@@ -1278,7 +1278,7 @@
 <!-- EVENT TIMELINE -->
 <!-- ============================================= -->
 
-<section class="timeline-section">
+<section class="timeline-section" id="reportsSection">
 
     <div class="timeline-card">
 

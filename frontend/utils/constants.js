@@ -12,7 +12,12 @@ Author : Vamsi Krishna
 // Backend
 // ==========================================================
 
-const API_BASE = "http://127.0.0.1:8000";
+const API_BASE = (function(){
+    if (window.location.protocol.startsWith('http')) {
+        return window.location.origin;
+    }
+    return 'http://127.0.0.1:8000';
+})();
 
 // ==========================================================
 // API Endpoints
@@ -22,13 +27,21 @@ const API = {
 
     dashboard: `${API_BASE}/dashboard`,
 
+    statistics: `${API_BASE}/statistics`,
+
     analytics: `${API_BASE}/analytics`,
 
     density: `${API_BASE}/density`,
 
-    traffic: `${API_BASE}/traffic`,
+    lanes: `${API_BASE}/lanes`,
 
     signals: `${API_BASE}/signals`,
+
+    emergency: `${API_BASE}/emergency`,
+
+    health: `${API_BASE}/health`,
+
+    camera: `${API_BASE}/camera`,
 
     startVideo: `${API_BASE}/start-video`,
 
@@ -42,7 +55,7 @@ const API = {
 // Dashboard Refresh
 // ==========================================================
 
-const REFRESH_INTERVAL = 1000;
+const REFRESH_INTERVAL = 500;
 
 // ==========================================================
 // Lane Names

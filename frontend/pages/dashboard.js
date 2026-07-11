@@ -65,7 +65,9 @@ async function refreshDashboard() {
             density: { class_density: {} },
             signals: {},
             counter: {},
-            emergency: { active: false }
+            emergency: { active: false },
+            current_green: { lane: '-', green_time: 0 },
+            system: { backend: 'Offline', processing: false }
         };
 
         dashboardData = fallback;
@@ -103,14 +105,12 @@ function updateKPICards(data) {
 
     setText(
         "confidence",
-        stats.confidence || "95%"
+        stats.confidence || "0%"
     );
 
     setText(
         "fpsCard",
-        data.processing_time
-            ? Math.round(1000 / data.processing_time)
-            : 0
+        data.fps || 0
     );
 
     // Density
@@ -141,24 +141,20 @@ function updateKPICards(data) {
 
     // Green Lane
 
-    const signals = data.signals || {};
+    const currentGreen = data.current_green || {};
 
-    let lane = "-";
-
-    for (const key in signals) {
-
-        lane = key.replace("_", " ");
-
-        break;
-
-    }
+    const greenLaneText = currentGreen.lane
+        ? currentGreen.lane.replace("_", " ")
+        : "-";
 
     setText(
-
         "greenLane",
+        greenLaneText
+    );
 
-        lane
-
+    setText(
+        "greenTimeFooter",
+        currentGreen.green_time ? `${currentGreen.green_time} sec` : "0 sec"
     );
 
     // Emergency Count
@@ -166,27 +162,16 @@ function updateKPICards(data) {
     const emergency = data.emergency;
 
     if (emergency && emergency.active) {
-
         setText(
-
             "emergencyCount",
-
             1
-
         );
-
     }
-
     else {
-
         setText(
-
             "emergencyCount",
-
             0
-
         );
-
     }
 
 }
@@ -197,30 +182,24 @@ function updateKPICards(data) {
 
 function updateSystemStatus(data) {
 
-    // Sidebar FPS
+    // Sidebar Status
 
-    const fps = data.processing_time
+    setText("backendStatus", data.system?.backend || "Online");
+    setText("cameraStatus", data.system?.processing ? "Running" : "Stopped");
+    setText("yoloStatus", data.system?.backend ? "Loaded" : "Offline");
+    setText("byteStatus", data.system?.backend ? "Active" : "Inactive");
 
-        ? Math.round(1000 / data.processing_time)
-
-        : 0;
+    const fps = data.fps || 0;
 
     setText("fps", fps);
-
     setText("overlayFPS", fps);
 
     // Camera Overlay
 
-    const total =
-
-        data.statistics?.total_vehicles || 0;
-
+    const total = data.statistics?.total_vehicles || 0;
     setText(
-
         "overlayVehicles",
-
         total
-
     );
 
 }

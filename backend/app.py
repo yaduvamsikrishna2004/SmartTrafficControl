@@ -123,7 +123,61 @@ def status():
 
         "processing": app_state["running"],
 
-        "fps": app_state["fps"]
+        "fps": engine.fps or app_state["fps"],
+
+        "health": "OK" if app_state["running"] else "IDLE",
+
+        "camera": "Running" if app_state["running"] else "Stopped"
+
+    }
+
+
+# ==========================================================
+
+@app.get("/health")
+def health():
+
+    return {
+
+        "status": "OK",
+
+        "backend": "Running",
+
+        "processing": app_state["running"],
+
+        "fps": engine.fps or app_state["fps"],
+
+        "camera": "Running" if app_state["running"] else "Stopped"
+
+    }
+
+
+# ==========================================================
+
+@app.get("/lanes")
+def lanes():
+
+    dashboard = engine.get_dashboard_data()
+
+    return JSONResponse(
+
+        dashboard.get("lane_data", {})
+
+    )
+
+
+# ==========================================================
+
+@app.get("/camera")
+def camera():
+
+    return {
+
+        "status": "running" if app_state["running"] else "stopped",
+
+        "feed_url": "/video-feed",
+
+        "backend": "TrafficIQ"
 
     }
 
