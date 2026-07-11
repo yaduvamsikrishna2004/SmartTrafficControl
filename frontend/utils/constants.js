@@ -14,6 +14,11 @@ Author : Vamsi Krishna
 
 const API_BASE = (function(){
     if (window.location.protocol.startsWith('http')) {
+        // If frontend is served from a local dev server, keep backend on port 8000.
+        const host = window.location.hostname;
+        if (host === '127.0.0.1' || host === 'localhost') {
+            return `http://${host}:8000`;
+        }
         return window.location.origin;
     }
     return 'http://127.0.0.1:8000';
