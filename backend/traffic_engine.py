@@ -18,6 +18,8 @@ from backend.counter import VehicleCounter
 from backend.density import DensityCalculator
 from backend.signal_controller import SignalController
 from backend.emergency import EmergencyDetector
+from backend.priority_engine import PriorityEngine
+from backend.utils import build_class_map, set_class_map
 
 
 class TrafficEngine:
@@ -30,6 +32,16 @@ class TrafficEngine:
 
         self.tracker = VehicleTracker(model_path)
 
+        # Build and set a class map from the model's class names so
+        # counting/density mapping is precise for the current model.
+        try:
+            class_names = self.tracker.detector.get_class_names()
+            mapping = build_class_map(class_names)
+            set_class_map(mapping)
+            print(f"[Engine] Class map set: {mapping}")
+        except Exception:
+            pass
+
         self.lane_manager = LaneManager(lane_config)
 
         self.counter = VehicleCounter()
@@ -37,8 +49,8 @@ class TrafficEngine:
         self.density = DensityCalculator()
 
         self.signal = SignalController()
-
         self.emergency = EmergencyDetector()
+        self.priority = PriorityEngine()
 
         # ====================================================
         # Runtime Information
@@ -85,18 +97,32 @@ class TrafficEngine:
         # ----------------------------------------------------
 
         tracks, annotated = self.tracker.track_frame(frame)
+        print(f"[Engine] Tracked {len(tracks)} objects")
 
         # ----------------------------------------------------
         # Lane Assignment
         # ----------------------------------------------------
 
+        # update lane polygons to match current frame size
+        try:
+            h, w = frame.shape[:2]
+            self.lane_manager.update_scale(w, h)
+        except Exception:
+            pass
+
         lane_objects = self.lane_manager.assign_lanes(tracks)
+        print(f"[Engine] Lane assignment complete. Sample: {lane_objects[:3]}")
 
         # ----------------------------------------------------
         # Emergency Detection
         # ----------------------------------------------------
 
-        emergency = self.emergency.detect(lane_objects)
+        emergency_list = self.emergency.detect(lane_objects)
+        print(f"[Engine] Emergency detection found: {emergency_list}")
+
+        # Evaluate priority decision (convert list -> decision dict)
+        priority_decision = self.priority.evaluate(emergency_list)
+        print(f"[Engine] Priority decision: {priority_decision}")
 
         # ----------------------------------------------------
         # Vehicle Counter
@@ -118,10 +144,13 @@ class TrafficEngine:
         # Adaptive Signal Controller
         # ----------------------------------------------------
 
+        # pass priority_decision (dict) to signal planner
         signal_plan = self.signal.generate_signal_plan(
             class_density,
-            emergency
+            priority_decision
         )
+
+        print(f"[Engine] Signal plan: {signal_plan}")
 
         # ----------------------------------------------------
         # Save Latest Results
@@ -143,7 +172,7 @@ class TrafficEngine:
 
         self.latest_signals = signal_plan
 
-        self.latest_emergency = emergency
+        self.latest_emergency = priority_decision
 
         # ----------------------------------------------------
         # Processing Time
@@ -177,7 +206,7 @@ class TrafficEngine:
 
             "processing_time": self.processing_time,
 
-            "emergency": emergency
+            "emergency": priority_decision
 
         }
 

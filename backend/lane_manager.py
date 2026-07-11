@@ -32,13 +32,30 @@ class LaneManager:
             lane_data = json.load(f)
 
         self.lanes = {}
+        # keep original points for scaling
+        self._original_lane_points = {}
 
         for lane_name, points in lane_data.items():
 
             self.lanes[lane_name] = Polygon(points)
+            self._original_lane_points[lane_name] = points
 
         # Store lane assignment permanently
         self.vehicle_lane = {}
+
+        # scaled lanes used for current frame size (initially same)
+        self.scaled_lanes = dict(self.lanes)
+
+        # compute design canvas size from provided coordinates
+        max_x = 0
+        max_y = 0
+        for pts in self._original_lane_points.values():
+            for x, y in pts:
+                max_x = max(max_x, x)
+                max_y = max(max_y, y)
+
+        self.design_width = max_x if max_x > 0 else 1
+        self.design_height = max_y if max_y > 0 else 1
 
         print("=" * 60)
         print("Lane Manager Initialized")
@@ -55,12 +72,36 @@ class LaneManager:
 
         point = Point(center)
 
-        for lane_name, polygon in self.lanes.items():
+        for lane_name, polygon in self.scaled_lanes.items():
 
             if polygon.contains(point):
                 return lane_name
 
         return None
+
+    # ---------------------------------------------------------
+
+    def update_scale(self, frame_width, frame_height):
+
+        """
+        Scale lane polygons from design coordinates to current frame size.
+        """
+
+        if frame_width <= 0 or frame_height <= 0:
+            return
+
+        fx = frame_width / float(self.design_width)
+        fy = frame_height / float(self.design_height)
+
+        scaled = {}
+
+        for lane_name, pts in self._original_lane_points.items():
+
+            new_pts = [(int(x * fx), int(y * fy)) for x, y in pts]
+
+            scaled[lane_name] = Polygon(new_pts)
+
+        self.scaled_lanes = scaled
 
     # ---------------------------------------------------------
 

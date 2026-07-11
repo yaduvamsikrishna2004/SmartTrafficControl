@@ -54,6 +54,8 @@ async function refreshDashboard() {
 
     const data = await fetchDashboard();
 
+    console.debug("refreshDashboard ->", data);
+
     if (!data) {
 
         console.warn("Dashboard refresh failed.");

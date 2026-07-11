@@ -103,7 +103,9 @@ class VehicleTracker:
 
             })
 
-        return tracked_objects, annotated
+            print(f"[Tracker] Returning {len(tracked_objects)} tracked objects")
+
+            return tracked_objects, annotated
 
     # -----------------------------------------------------
 

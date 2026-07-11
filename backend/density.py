@@ -10,6 +10,7 @@ Calculates LIVE vehicle density in each lane.
 """
 
 from collections import defaultdict
+from backend.utils import map_vehicle_class
 
 
 class DensityCalculator:
@@ -50,13 +51,22 @@ class DensityCalculator:
             if lane is None:
                 continue
 
-            vehicle_class = obj["class_name"]
+            # normalize class name to ensure keys exist
+            raw_class = obj.get("class_name", "others")
+            vehicle_class = map_vehicle_class(raw_class)
 
             lane_density[lane] += 1
+
+            # ensure key exists
+            if vehicle_class not in class_density[lane]:
+                class_density[lane][vehicle_class] = 0
 
             class_density[lane][vehicle_class] += 1
 
             class_density[lane]["total"] += 1
+
+        # Debug: save a quick printout
+        print(f"[Density] lane_density={dict(lane_density)}")
 
         # Save latest density
         self.last_density = {

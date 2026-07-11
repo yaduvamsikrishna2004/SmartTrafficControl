@@ -10,6 +10,7 @@ Counts unique vehicles in each lane.
 """
 
 from collections import defaultdict
+from backend.utils import map_vehicle_class
 
 
 class VehicleCounter:
@@ -60,11 +61,20 @@ class VehicleCounter:
 
             self.counted_ids.add(vehicle_id)
 
-            vehicle_class = obj["class_name"]
+            # normalize class names to canonical keys
+            raw_class = obj.get("class_name", "others")
+            vehicle_class = map_vehicle_class(raw_class)
+
+            # ensure key exists
+            if vehicle_class not in self.lane_counts[lane]:
+                self.lane_counts[lane][vehicle_class] = 0
 
             self.lane_counts[lane][vehicle_class] += 1
 
             self.lane_counts[lane]["total"] += 1
+
+        # Debug: print a brief update
+        print(f"[Counter] Total lanes counted: {len(self.lane_counts)}")
 
     # -----------------------------------------------------
 

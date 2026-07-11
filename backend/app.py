@@ -217,6 +217,34 @@ def analytics():
     )
 
 # ==========================================================
+# Statistics Alias
+# ==========================================================
+
+@app.get("/statistics")
+def statistics():
+
+    return JSONResponse(
+
+        engine.get_statistics()
+
+    )
+
+# ==========================================================
+# Emergency Status
+# ==========================================================
+
+@app.get("/emergency")
+def emergency():
+
+    return JSONResponse(
+
+        engine.get_dashboard_data().get("emergency", {
+            "active": False
+        })
+
+    )
+
+# ==========================================================
 # Video Streaming
 # ==========================================================
 

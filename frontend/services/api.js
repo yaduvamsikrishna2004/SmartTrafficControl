@@ -27,7 +27,9 @@ async function get(endpoint){
 
         }
 
-        return await response.json();
+        const json = await response.json();
+        console.debug("GET", endpoint, json);
+        return json;
 
     }
 
@@ -89,7 +91,15 @@ async function post(endpoint, body = {}){
 
 async function getDashboard(){
 
-    return await get(API.dashboard);
+    const resp = await get(API.dashboard);
+
+    // backend wraps data with { system:..., dashboard: {...} }
+    if(resp && resp.dashboard){
+        console.debug("Unwrapping dashboard payload");
+        return resp.dashboard;
+    }
+
+    return resp;
 
 }
 
@@ -191,6 +201,7 @@ async function fetchDashboard(){
 
     }
 
+    console.debug("fetchDashboard ->", data);
     return data;
 
 }
