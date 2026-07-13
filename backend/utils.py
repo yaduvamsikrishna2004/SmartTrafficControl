@@ -10,6 +10,7 @@ def map_vehicle_class(class_name: str) -> str:
     """
     Map raw model class names to canonical categories used by
     the counter/density/signal modules: 'car', 'bus', 'van', 'others'.
+    Emergency vehicles are preserved as their own type.
     This prevents KeyError when models use unexpected class labels.
     """
     if not class_name:
@@ -21,6 +22,16 @@ def map_vehicle_class(class_name: str) -> str:
         return _CLASS_MAP[name]
 
     name_lower = name.lower()
+
+    # Emergency vehicles - preserve as their own type
+    if "ambulance" in name_lower:
+        return "ambulance"
+
+    if "fire" in name_lower and "truck" in name_lower:
+        return "fire_truck"
+
+    if "police" in name_lower:
+        return "police"
 
     if name_lower in ("car", "sedan", "coupe", "hatchback"):
         return "car"

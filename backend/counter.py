@@ -20,19 +20,9 @@ class VehicleCounter:
         # vehicle IDs already counted
         self.counted_ids = set()
 
-        # statistics
+        # statistics - dynamically handle any vehicle type
         self.lane_counts = defaultdict(
-
-            lambda: {
-
-                "car": 0,
-                "bus": 0,
-                "van": 0,
-                "others": 0,
-                "total": 0
-
-            }
-
+            lambda: defaultdict(int)
         )
 
         print("=" * 60)
@@ -84,6 +74,13 @@ class VehicleCounter:
 
     # -----------------------------------------------------
 
+    def get_total(self):
+        """Return total count across all lanes."""
+        total = 0
+        for lane, stats in self.lane_counts.items():
+            total += stats.get("total", 0)
+        return total
+
     def print_summary(self):
 
         print("=" * 60)
@@ -100,12 +97,8 @@ class VehicleCounter:
 
             print("-" * 20)
 
-            print(f"Cars   : {stats['car']}")
+            for vtype, count in sorted(stats.items()):
+                if vtype != "total" and count > 0:
+                    print(f"{vtype.capitalize():6s}: {count}")
 
-            print(f"Bus    : {stats['bus']}")
-
-            print(f"Van    : {stats['van']}")
-
-            print(f"Others : {stats['others']}")
-
-            print(f"Total  : {stats['total']}")
+            print(f"Total  : {stats.get('total', 0)}")

@@ -215,19 +215,6 @@ def start_video():
 
 # ==========================================================
 
-@app.post("/stop-video")
-def stop_video():
-
-    app_state["running"] = False
-
-    return {
-
-        "message": "Processing stopped"
-
-    }
-
-# ==========================================================
-
 @app.get("/traffic")
 def traffic():
 
@@ -290,11 +277,19 @@ def statistics():
 @app.get("/emergency")
 def emergency():
 
+    dashboard = engine.get_dashboard_data()
+
     return JSONResponse(
 
-        engine.get_dashboard_data().get("emergency", {
-            "active": False
-        })
+        {
+            "emergency": dashboard.get("emergency", {"active": False}),
+            "summary": dashboard.get("emergency_summary", {
+                "current_count": 0,
+                "total_count": 0,
+                "per_lane_count": {},
+                "per_vehicle_count": {}
+            })
+        }
 
     )
 
@@ -358,6 +353,9 @@ def video_feed():
 @app.get("/dashboard")
 def dashboard():
 
+    # Use engine.fps for LIVE FPS during processing, fallback to app_state
+    live_fps = engine.fps if engine.fps > 0 else (app_state["fps"] if app_state["fps"] > 0 else 0)
+
     return {
 
         "system": {
@@ -370,7 +368,7 @@ def dashboard():
 
             "processing": app_state["running"],
 
-            "fps": app_state["fps"]
+            "fps": live_fps
 
         },
 

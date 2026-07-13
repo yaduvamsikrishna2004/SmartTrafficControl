@@ -53,10 +53,13 @@ class SignalController:
 
         score = 0
 
-        score += lane_stats["car"] * self.weights["car"]
-        score += lane_stats["van"] * self.weights["van"]
-        score += lane_stats["bus"] * self.weights["bus"]
-        score += lane_stats["others"] * self.weights["others"]
+        score += lane_stats.get("car", 0) * self.weights.get("car", 1.0)
+        score += lane_stats.get("van", 0) * self.weights.get("van", 1.3)
+        score += lane_stats.get("bus", 0) * self.weights.get("bus", 2.5)
+        score += lane_stats.get("others", 0) * self.weights.get("others", 1.0)
+        score += lane_stats.get("ambulance", 0) * 5.0
+        score += lane_stats.get("fire_truck", 0) * 5.0
+        score += lane_stats.get("police", 0) * 5.0
 
         return round(score, 2)
 

@@ -20,6 +20,8 @@ from backend.signal_controller import SignalController
 from backend.emergency import EmergencyDetector
 from backend.priority_engine import PriorityEngine
 from backend.utils import build_class_map, set_class_map
+from backend.config import EMERGENCY_MODEL_PATH, EMERGENCY_CONF, EMERGENCY_IOU, EMERGENCY_GREEN
+from backend.detector import YOLODetector
 
 
 class TrafficEngine:
@@ -31,6 +33,11 @@ class TrafficEngine:
         # ====================================================
 
         self.tracker = VehicleTracker(model_path)
+
+        self.emergency_detector = YOLODetector(
+            EMERGENCY_MODEL_PATH,
+            model_label="Emergency model loaded"
+        )
 
         # Build and set a class map from the model's class names so
         # counting/density mapping is precise for the current model.
@@ -48,9 +55,20 @@ class TrafficEngine:
 
         self.density = DensityCalculator()
 
-        self.signal = SignalController()
-        self.emergency = EmergencyDetector()
+        self.signal = SignalController(emergency_green=EMERGENCY_GREEN)
+        self.emergency = EmergencyDetector(
+            detector=self.emergency_detector,
+            conf=EMERGENCY_CONF,
+            iou=EMERGENCY_IOU
+        )
         self.priority = PriorityEngine()
+
+        self.emergency_summary = {
+            "current_count": 0,
+            "total_count": 0,
+            "per_lane_count": {},
+            "per_vehicle_count": {}
+        }
 
         # ====================================================
         # Runtime Information
@@ -81,9 +99,18 @@ class TrafficEngine:
         self.latest_signals = {}
 
         self.latest_emergency = {
-
             "active": False
+        }
 
+        self.latest_vehicle_detections = []
+        self.latest_emergency_detections = []
+        self.latest_merged_detections = []
+
+        self.emergency_summary = {
+            "current_count": 0,
+            "total_count": 0,
+            "per_lane_count": {},
+            "per_vehicle_count": {}
         }
 
         print("=" * 60)
@@ -99,17 +126,25 @@ class TrafficEngine:
         start = time.perf_counter()
 
         # ----------------------------------------------------
-        # Vehicle Tracking
+        # Step 1: Vehicle Detection via Tracker (YOLO + ByteTrack)
+        # ----------------------------------------------------
+        # tracker.track_frame already calls model.track internally.
+        # We do NOT need a separate model.predict() call.
+
+        tracks, annotated, vehicle_track_result = self.tracker.track_frame(
+            frame,
+            conf=0.30,
+            return_results=True
+        )
+
+        # Save raw vehicle detections for debugging
+        self.latest_vehicle_detections = self.tracker.detector.get_detections(vehicle_track_result)
+        print(f"[Engine] Vehicle detections: {len(self.latest_vehicle_detections)} objects")
+
+        # ----------------------------------------------------
+        # Step 2: Lane Assignment
         # ----------------------------------------------------
 
-        tracks, annotated = self.tracker.track_frame(frame)
-        print(f"[Engine] Tracked {len(tracks)} objects")
-
-        # ----------------------------------------------------
-        # Lane Assignment
-        # ----------------------------------------------------
-
-        # update lane polygons to match current frame size
         try:
             h, w = frame.shape[:2]
             self.lane_manager.update_scale(w, h)
@@ -120,66 +155,122 @@ class TrafficEngine:
         print(f"[Engine] Lane assignment complete. Sample: {lane_objects[:3]}")
 
         # ----------------------------------------------------
-        # Emergency Detection
+        # Step 3: Emergency Detection
+        # ----------------------------------------------------
+        # Run emergency model separately for ambulance/firetruck/police
+
+        emergency_raw_results = self.emergency_detector.model.track(
+            source=frame,
+            conf=EMERGENCY_CONF,
+            iou=EMERGENCY_IOU,
+            persist=True,
+            tracker="bytetrack.yaml",
+            verbose=False
+        )
+
+        emergency_list = self.emergency.detect(
+            frame,
+            self.lane_manager,
+            raw_results=emergency_raw_results
+        )
+
+        self.latest_emergency_detections = list(emergency_list)
+        print(f"[Engine] Emergency detections after lane/class normalization: {len(emergency_list)} objects")
+
+        # ----------------------------------------------------
+        # Step 4: Match emergency to tracked vehicles (BEFORE merging)
         # ----------------------------------------------------
 
-        emergency_list = self.emergency.detect(lane_objects)
-        print(f"[Engine] Emergency detection found: {emergency_list}")
+        if len(emergency_list) > 0:
+            for emergency in emergency_list:
+                track = self._find_matching_track(emergency, lane_objects)
+                if track is not None:
+                    track["emergency"] = True
+                    track["emergency_vehicle"] = emergency["vehicle"]
+                    track["emergency_confidence"] = emergency["confidence"]
+                    track["emergency_track_id"] = emergency["track_id"]
+                    emergency["matched_track_id"] = track["track_id"]
+                else:
+                    emergency["matched_track_id"] = None
 
-        # Evaluate priority decision (convert list -> decision dict)
+        # ----------------------------------------------------
+        # Step 5: Merge Detections (AFTER matching)
+        # ----------------------------------------------------
+
+        combined_objects = list(lane_objects)
+
+        for emergency in emergency_list:
+            # Only add unmatched emergencies as new objects
+            if emergency.get("matched_track_id") is None:
+                lane = emergency.get("lane")
+                combined_objects.append({
+                    "track_id": emergency["track_id"],
+                    "class_name": emergency["class_name"],
+                    "confidence": emergency["confidence"],
+                    "bbox": emergency["bbox"],
+                    "center": emergency["center"],
+                    "lane": lane,
+                    "source": "emergency_model",
+                    "emergency": True,
+                    "vehicle": emergency["vehicle"]
+                })
+            else:
+                print(f"[Engine] Emergency vehicle {emergency['vehicle']} matched to track {emergency['matched_track_id']}")
+
+        self.latest_merged_detections = combined_objects
+        print(f"[Engine] Merged detections: {len(combined_objects)} objects")
+
+        # ----------------------------------------------------
+        # Step 6: Priority Engine
+        # ----------------------------------------------------
+
         priority_decision = self.priority.evaluate(emergency_list)
         print(f"[Engine] Priority decision: {priority_decision}")
 
         # ----------------------------------------------------
-        # Vehicle Counter
+        # Step 7: Vehicle Counter (use merged objects to count emergency vehicles too)
         # ----------------------------------------------------
 
-        self.counter.update(lane_objects)
-
+        self.counter.update(combined_objects)
         lane_counts = self.counter.get_counts()
 
         # ----------------------------------------------------
-        # Density Calculation
+        # Step 8: Density Calculation (use merged objects for accurate density)
         # ----------------------------------------------------
 
         lane_density, class_density = self.density.calculate_density(
-            lane_objects
+            combined_objects
         )
 
         # ----------------------------------------------------
-        # Adaptive Signal Controller
+        # Step 9: Adaptive Signal Controller
         # ----------------------------------------------------
 
-        # pass priority_decision (dict) to signal planner
         signal_plan = self.signal.generate_signal_plan(
             class_density,
             priority_decision
         )
 
         print(f"[Engine] Signal plan: {signal_plan}")
+        print(f"[Engine] Emergency active: {priority_decision.get('active', False)}")
 
         # ----------------------------------------------------
         # Save Latest Results
         # ----------------------------------------------------
 
         self.latest_frame = annotated
-
         self.latest_tracks = lane_objects
-
         self.latest_counter = lane_counts
 
         self.latest_density = {
-
             "lane_density": dict(lane_density),
-
             "class_density": dict(class_density)
-
         }
 
         self.latest_signals = signal_plan
-
         self.latest_emergency = priority_decision
 
+        # Average confidence across all tracked objects
         self.latest_confidence = 0.0
         if len(lane_objects) > 0:
             self.latest_confidence = round(
@@ -188,6 +279,7 @@ class TrafficEngine:
                 3
             )
 
+        # Current green lane (first lane in signal plan)
         self.current_green_lane = None
         self.current_green_time = 0
         if len(signal_plan) > 0:
@@ -196,19 +288,11 @@ class TrafficEngine:
             self.current_green_time = signal_plan[first_lane].get("green_time", 0)
 
         # ----------------------------------------------------
-        # Processing Time
+        # Processing Time & FPS
         # ----------------------------------------------------
 
         end = time.perf_counter()
-
-        self.processing_time = round(
-
-            (end - start) * 1000,
-
-            2
-
-        )
-
+        self.processing_time = round((end - start) * 1000, 2)
         self.fps = round(1000 / self.processing_time, 2) if self.processing_time > 0 else 0
 
         # ----------------------------------------------------
@@ -216,22 +300,61 @@ class TrafficEngine:
         # ----------------------------------------------------
 
         return {
-
             "frame": annotated,
-
             "tracks": lane_objects,
-
             "counter": lane_counts,
-
             "density": self.latest_density,
-
             "signals": signal_plan,
-
             "processing_time": self.processing_time,
-
-            "emergency": priority_decision
-
+            "fps": self.fps,
+            "emergency": priority_decision,
+            "emergency_summary": self.emergency.get_summary(),
+            "vehicle_detections": self.latest_vehicle_detections,
+            "emergency_detections": self.latest_emergency_detections,
+            "merged_detections": self.latest_merged_detections
         }
+
+    # ========================================================
+    # Emergency Matching Helpers
+    # ========================================================
+
+    def _find_matching_track(self, emergency, tracked_objects):
+
+        emergency_center = emergency.get("center")
+        emergency_lane = emergency.get("lane")
+
+        if emergency_center is None:
+            return None
+
+        ex, ey = emergency_center
+
+        for obj in tracked_objects:
+
+            # If emergency has a valid lane, try to match by lane first
+            if emergency_lane and emergency_lane != "Unknown":
+                if obj.get("lane") != emergency_lane:
+                    continue
+
+            bbox = obj.get("bbox")
+            if not bbox:
+                continue
+
+            x1, y1, x2, y2 = bbox
+            # Check if emergency center falls within vehicle bbox
+            if x1 <= ex <= x2 and y1 <= ey <= y2:
+                # Update the vehicle's lane to the emergency's lane if needed
+                if emergency_lane and emergency_lane != "Unknown" and obj.get("lane") != emergency_lane:
+                    obj["lane"] = emergency_lane
+                return obj
+
+            # fallback: compare center distance
+            center = obj.get("center")
+            if center:
+                cx, cy = center
+                if abs(cx - ex) <= 50 and abs(cy - ey) <= 50:
+                    return obj
+
+        return None
 
     # ========================================================
     # Get Latest Counter
@@ -289,17 +412,24 @@ class TrafficEngine:
 
         others = 0
 
-        for lane in self.latest_counter.values():
+        emergencies = 0
 
-            total += lane.get("total", 0)
+        for lane, lane_data in self.latest_counter.items():
 
-            cars += lane.get("car", 0)
+            total += lane_data.get("total", 0)
 
-            buses += lane.get("bus", 0)
+            cars += lane_data.get("car", 0)
 
-            vans += lane.get("van", 0)
+            buses += lane_data.get("bus", 0)
 
-            others += lane.get("others", 0)
+            vans += lane_data.get("van", 0)
+
+            others += lane_data.get("others", 0)
+
+            # Count emergency vehicles too
+            emergencies += lane_data.get("ambulance", 0)
+            emergencies += lane_data.get("fire_truck", 0)
+            emergencies += lane_data.get("police", 0)
 
         stats = {
 
@@ -311,7 +441,9 @@ class TrafficEngine:
 
             "van": vans,
 
-            "others": others
+            "others": others,
+
+            "emergency_vehicles": emergencies
 
         }
 
@@ -368,7 +500,15 @@ class TrafficEngine:
 
             "tracked_vehicles": len(self.latest_tracks),
 
-            "emergency": self.latest_emergency
+            "emergency": self.latest_emergency,
+
+            "emergency_summary": self.emergency.get_summary(),
+
+            "vehicle_detections": self.latest_vehicle_detections,
+
+            "emergency_detections": self.latest_emergency_detections,
+
+            "merged_detections": self.latest_merged_detections
 
         }
 
@@ -382,9 +522,13 @@ class TrafficEngine:
 
         self.density = DensityCalculator()
 
-        self.signal = SignalController()
+        self.signal = SignalController(emergency_green=EMERGENCY_GREEN)
 
-        self.emergency = EmergencyDetector()
+        self.emergency = EmergencyDetector(
+            detector=self.emergency_detector,
+            conf=EMERGENCY_CONF,
+            iou=EMERGENCY_IOU
+        )
 
         self.processing_time = 0
 
@@ -406,10 +550,15 @@ class TrafficEngine:
 
         self.latest_signals = {}
 
-        self.latest_emergency = {
-
-            "active": False
-
+        self.latest_emergency = { "active": False }
+        self.latest_vehicle_detections = []
+        self.latest_emergency_detections = []
+        self.latest_merged_detections = []
+        self.emergency_summary = {
+            "current_count": 0,
+            "total_count": 0,
+            "per_lane_count": {},
+            "per_vehicle_count": {}
         }
 
         print("=" * 60)

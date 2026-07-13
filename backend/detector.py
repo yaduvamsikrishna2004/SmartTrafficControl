@@ -22,7 +22,7 @@ class YOLODetector:
     YOLO Detector Class
     """
 
-    def __init__(self, model_path: str):
+    def __init__(self, model_path: str, model_label: str = None):
 
         if not os.path.exists(model_path):
             raise FileNotFoundError(
@@ -35,6 +35,9 @@ class YOLODetector:
 
         self.model = YOLO(model_path)
         self.class_names = self.model.names
+
+        if model_label:
+            print(model_label)
 
         print("✅ Model Loaded Successfully\n")
 

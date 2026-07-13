@@ -19,7 +19,10 @@ class VehicleTracker:
 
     def __init__(self, model_path):
 
-        self.detector = YOLODetector(model_path)
+        self.detector = YOLODetector(
+            model_path,
+            model_label="Vehicle model loaded"
+        )
 
         print("Vehicle Tracker Initialized")
 
@@ -29,11 +32,15 @@ class VehicleTracker:
         self,
         frame,
         conf=0.30,
-        iou=0.45
+        iou=0.45,
+        return_results=False
     ):
 
         """
         Track vehicles in a single frame.
+
+        If return_results is True, returns a tuple of
+        (tracked_objects, annotated_frame, raw_results).
         """
 
         results = self.detector.model.track(
@@ -104,6 +111,9 @@ class VehicleTracker:
             })
 
         print(f"[Tracker] Returning {len(tracked_objects)} tracked objects")
+
+        if return_results:
+            return tracked_objects, annotated, result
 
         return tracked_objects, annotated
 

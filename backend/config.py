@@ -7,8 +7,16 @@ Application Configuration
 # -----------------------------
 
 MODEL_PATH = "models/best.pt"
+EMERGENCY_MODEL_PATH = "models/emergency_best.pt"
 VIDEO_PATH = "videos/cam4.mp4"
 LANE_CONFIG = "config/lanes.json"
+
+# -----------------------------
+# Emergency Detection
+# -----------------------------
+EMERGENCY_CONF = 0.25
+EMERGENCY_IOU = 0.45
+EMERGENCY_GREEN = 60
 
 # -----------------------------
 # Signal Timing

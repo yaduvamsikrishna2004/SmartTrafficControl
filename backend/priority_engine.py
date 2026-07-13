@@ -125,6 +125,12 @@ class PriorityEngine:
 
                 best = vehicle
 
+            elif priority == highest_priority and best is not None:
+
+                if vehicle["confidence"] > best["confidence"]:
+
+                    best = vehicle
+
         # ------------------------------------------
 
         decision = {

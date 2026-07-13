@@ -22,6 +22,7 @@ function updateSignalPanel(dashboard){
     const signals = dashboard.signals || {};
 
     const emergency = dashboard.emergency || {};
+    const emergencySummary = dashboard.emergency_summary || {};
 
     // ------------------------------------------
     // Find Active Lane
@@ -120,6 +121,12 @@ function updateSignalPanel(dashboard){
     const priorityLane =
         $("priorityLane");
 
+    const emergencyConfidence =
+        $("emergencyConfidence");
+
+    const emergencyTrackId =
+        $("emergencyTrackId");
+
     const overrideStatus =
         $("overrideStatus");
 
@@ -138,6 +145,14 @@ function updateSignalPanel(dashboard){
 
         priorityLane.textContent =
             emergency.lane;
+
+        emergencyConfidence.textContent =
+            emergency.confidence
+                ? `${Math.round(emergency.confidence * 100)}%`
+                : "-";
+
+        emergencyTrackId.textContent =
+            emergency.track_id || "-";
 
         overrideStatus.textContent =
             "Enabled";
@@ -160,7 +175,10 @@ function updateSignalPanel(dashboard){
                 "🚨 " +
                 emergency.vehicle.toUpperCase() +
                 " DETECTED - " +
-                emergency.lane;
+                emergency.lane +
+                " (" +
+                (emergencySummary.current_count || 0) +
+                " active)";
 
         }
 

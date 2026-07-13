@@ -30,18 +30,9 @@ class DensityCalculator:
 
         lane_density = defaultdict(int)
 
+        # Dynamically handle any vehicle type
         class_density = defaultdict(
-
-            lambda: {
-
-                "car": 0,
-                "bus": 0,
-                "van": 0,
-                "others": 0,
-                "total": 0
-
-            }
-
+            lambda: defaultdict(int)
         )
 
         for obj in tracked_objects:
@@ -57,12 +48,7 @@ class DensityCalculator:
 
             lane_density[lane] += 1
 
-            # ensure key exists
-            if vehicle_class not in class_density[lane]:
-                class_density[lane][vehicle_class] = 0
-
             class_density[lane][vehicle_class] += 1
-
             class_density[lane]["total"] += 1
 
         # Debug: save a quick printout
@@ -114,16 +100,16 @@ class DensityCalculator:
 
         for lane, stats in class_density.items():
 
-            level = self.get_density_level(stats["total"])
+            level = self.get_density_level(stats.get("total", 0))
 
             print()
 
             print(lane)
             print("-" * 25)
 
-            print(f"Cars    : {stats['car']}")
-            print(f"Bus     : {stats['bus']}")
-            print(f"Van     : {stats['van']}")
-            print(f"Others  : {stats['others']}")
-            print(f"Total   : {stats['total']}")
+            for vtype, count in sorted(stats.items()):
+                if vtype != "total" and count > 0:
+                    print(f"{vtype.capitalize():6s}: {count}")
+
+            print(f"Total   : {stats.get('total', 0)}")
             print(f"Density : {level}")

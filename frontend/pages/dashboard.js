@@ -159,20 +159,12 @@ function updateKPICards(data) {
 
     // Emergency Count
 
-    const emergency = data.emergency;
+    const emergencySummary = data.emergency_summary || {};
 
-    if (emergency && emergency.active) {
-        setText(
-            "emergencyCount",
-            1
-        );
-    }
-    else {
-        setText(
-            "emergencyCount",
-            0
-        );
-    }
+    setText(
+        "emergencyCount",
+        emergencySummary.current_count || 0
+    );
 
 }
 
