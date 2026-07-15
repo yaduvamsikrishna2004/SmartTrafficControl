@@ -1,0 +1,79 @@
+{
+  "architectures": [
+    [
+      "A: best.pt only",
+      1,
+      9.8,
+      102.4,
+      99,
+      0,
+      0,
+      0.0,
+      1.0,
+      "Low",
+      "Low",
+      "High",
+      "No"
+    ],
+    [
+      "B: emergency_best.pt only",
+      1,
+      9.9,
+      100.7,
+      96,
+      31,
+      0,
+      0.0,
+      1.0,
+      "Low",
+      "Low",
+      "High",
+      "No"
+    ],
+    [
+      "C: best.pt + emergency_best.pt",
+      2,
+      4.9,
+      203.1,
+      195,
+      31,
+      0,
+      0.0,
+      2.0,
+      "Medium",
+      "Medium",
+      "Medium",
+      "No"
+    ],
+    [
+      "D: best.pt + emergency_best.pt + yolov8n",
+      3,
+      3.9,
+      257.0,
+      904,
+      31,
+      280,
+      0.0,
+      3.0,
+      "High",
+      "High",
+      "Low",
+      "No"
+    ]
+  ],
+  "headers": [
+    "Architecture",
+    "Models",
+    "FPS",
+    "Infer(ms)",
+    "Total Dets",
+    "Emergency",
+    "False Pos",
+    "Mem(MB)",
+    "Power(W)",
+    "Dup Det",
+    "Complexity",
+    "Maintain",
+    "Real-time"
+  ]
+}

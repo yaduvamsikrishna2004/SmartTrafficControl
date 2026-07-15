@@ -1,0 +1,12 @@
+{
+  "model_name": "Model 3 (yolov8n-amburoute)",
+  "model_path": "D:\\VIT AP\\capstone\\Capstone_project\\SmartTrafficProject\\models\\yolov8n.pt",
+  "total_frames": 100,
+  "total_detections": 709,
+  "total_emergency": 0,
+  "avg_dets_per_frame": 7.1,
+  "avg_inference_ms": 53.9,
+  "avg_fps": 18.6,
+  "false_positives": 280,
+  "output_video": "D:\\VIT AP\\capstone\\Capstone_project\\SmartTrafficProject\\evaluation_output\\amburoute_model.mp4"
+}

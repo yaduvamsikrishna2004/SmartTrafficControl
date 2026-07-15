@@ -1,0 +1,12 @@
+{
+  "model_name": "Model 1 (best.pt)",
+  "model_path": "D:\\VIT AP\\capstone\\Capstone_project\\SmartTrafficProject\\models\\best.pt",
+  "total_frames": 100,
+  "total_detections": 99,
+  "total_emergency": 0,
+  "avg_dets_per_frame": 1.0,
+  "avg_inference_ms": 102.4,
+  "avg_fps": 9.8,
+  "false_positives": 0,
+  "output_video": "D:\\VIT AP\\capstone\\Capstone_project\\SmartTrafficProject\\evaluation_output\\vehicle_model.mp4"
+}

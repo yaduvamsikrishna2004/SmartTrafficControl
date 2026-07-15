@@ -6,6 +6,37 @@ def ensure_dir(path):
     return path
 
 
+# ============================================================
+# Emergency vehicle class names (canonical)
+# ============================================================
+EMERGENCY_VEHICLE_CLASSES = {"ambulance", "fire_truck", "police"}
+
+
+def is_emergency_class(class_name: str) -> bool:
+    """Check if a class name is an emergency vehicle type."""
+    if not class_name:
+        return False
+    name = str(class_name).lower().replace("-", " ").replace("_", " ")
+    for ec in ["ambulance", "fire", "police"]:
+        if ec in name:
+            return True
+    return False
+
+
+def normalize_emergency_class(class_name: str) -> str:
+    """Normalize any emergency class name to canonical form."""
+    if not class_name:
+        return None
+    name = str(class_name).lower().replace("-", " ").replace("_", " ").strip()
+    if "ambulance" in name:
+        return "ambulance"
+    if "fire" in name and "truck" in name:
+        return "fire_truck"
+    if "police" in name:
+        return "police"
+    return None
+
+
 def map_vehicle_class(class_name: str) -> str:
     """
     Map raw model class names to canonical categories used by
@@ -18,20 +49,16 @@ def map_vehicle_class(class_name: str) -> str:
 
     name = str(class_name)
 
+    # Check explicit class map first
     if _CLASS_MAP and name in _CLASS_MAP:
         return _CLASS_MAP[name]
 
     name_lower = name.lower()
 
     # Emergency vehicles - preserve as their own type
-    if "ambulance" in name_lower:
-        return "ambulance"
-
-    if "fire" in name_lower and "truck" in name_lower:
-        return "fire_truck"
-
-    if "police" in name_lower:
-        return "police"
+    emerg = normalize_emergency_class(name)
+    if emerg:
+        return emerg
 
     if name_lower in ("car", "sedan", "coupe", "hatchback"):
         return "car"
