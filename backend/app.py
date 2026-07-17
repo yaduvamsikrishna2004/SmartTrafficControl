@@ -8,12 +8,19 @@ Author : Vamsi Krishna
 """
 
 import cv2
+import sys
+import os
 import threading
 import time
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
+
+# Ensure the project root is on sys.path so 'backend' package is importable
+_project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
 
 from backend.traffic_engine import TrafficEngine
 from backend.config import *
@@ -375,3 +382,17 @@ def dashboard():
         "dashboard": engine.get_dashboard_data()
 
     }
+
+
+# ==========================================================
+# Entry Point
+# ==========================================================
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(
+        "backend.app:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True
+    )
