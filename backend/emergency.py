@@ -13,11 +13,25 @@ Supported Vehicles:
     • Ambulance
     • Fire Truck
     • Police Vehicle
+
+FIXES:
+1. Lower confidence threshold (0.20) to never miss emergency vehicles
+2. Temporal confirmation: 2 consecutive frames → lock for 15 frames
+3. Object missing 1 frame → keep tracking (temporal recovery)
+4. Object missing 10 frames → remove
+5. Emergency overlap IoU threshold lowered to 0.3 for partial occlusions
+6. Better bbox key generation for temporal tracking
 ============================================================
 """
 
 
 from collections import defaultdict
+from backend.config import (
+    TEMPORAL_CONFIRM_FRAMES,
+    TEMPORAL_LOCK_FRAMES,
+    EMERGENCY_OVERLAP_IOU,
+    MERGE_IOU_THRESHOLD,
+)
 
 
 class EmergencyDetector:
@@ -53,6 +67,14 @@ class EmergencyDetector:
         self._lock_remaining = defaultdict(int)
         # Whether a bbox key is currently locked as emergency
         self._locked_emergencies = {}
+
+        # =====================================================
+        # FIX: Track missing frames for each locked emergency
+        # If missing for more than VEHICLE_MISSING_TIMEOUT frames,
+        # remove the lock
+        # =====================================================
+        self._missing_frames = defaultdict(int)
+        self._max_missing_frames = 10  # Remove after 10 consecutive missing frames
 
         print("=" * 60)
         print("Emergency Detector Initialized")
@@ -104,6 +126,13 @@ class EmergencyDetector:
                 self._printed_names = True
 
             if result.boxes is None:
+                # ====================================================
+                # FIX: Even if no detections this frame, check if we
+                # have locked emergencies that should be recovered
+                # ====================================================
+                recovered = self._recover_locked_emergencies(lane_manager)
+                if recovered:
+                    emergencies = recovered
                 self._update_counts(emergencies)
                 self.latest_emergencies = emergencies
                 return emergencies
@@ -129,9 +158,11 @@ class EmergencyDetector:
                 if class_name is None:
                     continue
 
-                # Create a bbox hash for temporal tracking
-                # Use quantized bbox to allow small movements
-                bbox_key = f"{x1//10}_{y1//10}_{x2//10}_{y2//10}"
+                # ====================================================
+                # FIX: Better bbox key - use smaller quantization
+                # to handle small movements between frames
+                # ====================================================
+                bbox_key = f"{x1//5}_{y1//5}_{x2//5}_{y2//5}"
 
                 raw_detections.append({
                     "vehicle": class_name,
@@ -145,7 +176,9 @@ class EmergencyDetector:
                     "_bbox_key": bbox_key,
                 })
 
-            # ----- Apply temporal confirmation -----
+            # ====================================================
+            # FIX: Apply temporal confirmation with missing frame tracking
+            # ====================================================
             # Decrease all lock counters
             to_delete = []
             for key in self._lock_remaining:
@@ -156,6 +189,8 @@ class EmergencyDetector:
                 del self._lock_remaining[key]
                 if key in self._locked_emergencies:
                     del self._locked_emergencies[key]
+                if key in self._missing_frames:
+                    del self._missing_frames[key]
 
             # Process this frame's detections
             current_keys = set()
@@ -163,19 +198,27 @@ class EmergencyDetector:
                 key = det["_bbox_key"]
                 current_keys.add(key)
 
+                # Reset missing frame counter for this key
+                if key in self._missing_frames:
+                    del self._missing_frames[key]
+
                 if key in self._locked_emergencies:
                     # Already locked as emergency - keep it
                     det["_temporal_locked"] = True
+                    # Update the bbox in the locked entry
+                    self._locked_emergencies[key]["bbox"] = det["bbox"]
+                    self._locked_emergencies[key]["center"] = det["center"]
+                    self._locked_emergencies[key]["confidence"] = det["confidence"]
                     continue
 
                 # Increment consecutive count
                 self._temporal_counts[key] += 1
-                if self._temporal_counts[key] >= 2:
-                    # Lock this emergency for 15 frames
-                    self._lock_remaining[key] = 15
+                if self._temporal_counts[key] >= TEMPORAL_CONFIRM_FRAMES:
+                    # Lock this emergency for configured frames
+                    self._lock_remaining[key] = TEMPORAL_LOCK_FRAMES
                     self._locked_emergencies[key] = det
                     det["_temporal_locked"] = True
-                    print(f"[Emergency] TEMPORAL LOCK: {det['vehicle']} at {key} locked for 15 frames")
+                    print(f"[Emergency] TEMPORAL LOCK: {det['vehicle']} at {key} locked for {TEMPORAL_LOCK_FRAMES} frames")
                 else:
                     det["_temporal_locked"] = False
 
@@ -183,6 +226,22 @@ class EmergencyDetector:
             stale_keys = [k for k in self._temporal_counts if k not in current_keys]
             for k in stale_keys:
                 del self._temporal_counts[k]
+
+            # ====================================================
+            # FIX: Track missing frames for locked emergencies
+            # ====================================================
+            for key in list(self._locked_emergencies.keys()):
+                if key not in current_keys:
+                    self._missing_frames[key] += 1
+                    if self._missing_frames[key] > self._max_missing_frames:
+                        # Remove this lock - vehicle has left the scene
+                        print(f"[Emergency] REMOVING LOCK: {self._locked_emergencies[key]['vehicle']} at {key} "
+                              f"(missing {self._missing_frames[key]} frames)")
+                        del self._locked_emergencies[key]
+                        if key in self._lock_remaining:
+                            del self._lock_remaining[key]
+                        if key in self._missing_frames:
+                            del self._missing_frames[key]
 
             # Add locked emergencies that weren't detected this frame
             for key, locked_det in self._locked_emergencies.items():
@@ -192,7 +251,40 @@ class EmergencyDetector:
                     re_add["_temporal_locked"] = True
                     re_add["_temporal_recovered"] = True
                     raw_detections.append(re_add)
-                    print(f"[Emergency] TEMPORAL RECOVER: {re_add['vehicle']} at {key} (re-added from lock)")
+                    print(f"[Emergency] TEMPORAL RECOVER: {re_add['vehicle']} at {key} (re-added from lock, "
+                          f"missing {self._missing_frames.get(key, 0)} frames)")
+
+            # ====================================================
+            # FIX: Use IoU-based matching to detect if an emergency
+            # vehicle was detected but with a slightly different bbox
+            # (handles partial occlusions and small movements)
+            # ====================================================
+            # Check for IoU-based matches between new detections and locked emergencies
+            for det in raw_detections:
+                if det.get("_temporal_locked"):
+                    continue
+                det_bbox = det.get("bbox")
+                if not det_bbox:
+                    continue
+                for key, locked_det in list(self._locked_emergencies.items()):
+                    locked_bbox = locked_det.get("bbox")
+                    if not locked_bbox:
+                        continue
+                    iou = self._compute_iou(det_bbox, locked_bbox)
+                    if iou > EMERGENCY_OVERLAP_IOU:
+                        # This detection matches a locked emergency - use the lock
+                        det["_temporal_locked"] = True
+                        det["_bbox_key"] = key  # Use the same key for consistency
+                        # Update the locked entry with new bbox
+                        self._locked_emergencies[key]["bbox"] = det["bbox"]
+                        self._locked_emergencies[key]["center"] = det["center"]
+                        self._locked_emergencies[key]["confidence"] = max(
+                            self._locked_emergencies[key]["confidence"], det["confidence"]
+                        )
+                        # Reset missing frames
+                        if key in self._missing_frames:
+                            del self._missing_frames[key]
+                        break
 
             # ----- Assign surrogate track_ids based on locked state -----
             # We use a hash of the bbox as a surrogate track_id since we're not
@@ -214,6 +306,65 @@ class EmergencyDetector:
         self._update_counts(emergencies)
         self.latest_emergencies = emergencies
         return emergencies
+
+    # =====================================================
+
+    def _recover_locked_emergencies(self, lane_manager):
+        """
+        When no detections are found, check if we have locked emergencies
+        that should still be reported.
+        """
+        recovered = []
+        for key, locked_det in list(self._locked_emergencies.items()):
+            self._missing_frames[key] += 1
+            if self._missing_frames[key] > self._max_missing_frames:
+                print(f"[Emergency] REMOVING LOCK (no detections): {locked_det['vehicle']} at {key}")
+                del self._locked_emergencies[key]
+                if key in self._lock_remaining:
+                    del self._lock_remaining[key]
+                if key in self._missing_frames:
+                    del self._missing_frames[key]
+                continue
+
+            re_add = dict(locked_det)
+            re_add["_temporal_locked"] = True
+            re_add["_temporal_recovered"] = True
+            recovered.append(re_add)
+
+        if recovered:
+            print(f"[Emergency] Recovered {len(recovered)} locked emergencies (no new detections)")
+
+        return recovered
+
+    # =====================================================
+
+    def _compute_iou(self, bbox1, bbox2):
+        """Compute Intersection over Union between two bounding boxes."""
+        if bbox1 is None or bbox2 is None:
+            return 0.0
+
+        x1_1, y1_1, x2_1, y2_1 = bbox1
+        x1_2, y1_2, x2_2, y2_2 = bbox2
+
+        # Intersection coordinates
+        ix1 = max(x1_1, x1_2)
+        iy1 = max(y1_1, y1_2)
+        ix2 = min(x2_1, x2_2)
+        iy2 = min(y2_1, y2_2)
+
+        if ix1 >= ix2 or iy1 >= iy2:
+            return 0.0
+
+        inter_area = (ix2 - ix1) * (iy2 - iy1)
+
+        # Areas of both boxes
+        area1 = (x2_1 - x1_1) * (y2_1 - y1_1)
+        area2 = (x2_2 - x1_2) * (y2_2 - y1_2)
+
+        if area1 + area2 - inter_area <= 0:
+            return 0.0
+
+        return inter_area / (area1 + area2 - inter_area)
 
     # =====================================================
 
@@ -283,6 +434,7 @@ class EmergencyDetector:
         self._temporal_counts.clear()
         self._lock_remaining.clear()
         self._locked_emergencies.clear()
+        self._missing_frames.clear()
 
     # =====================================================
 

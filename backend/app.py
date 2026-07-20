@@ -15,6 +15,9 @@ OPTIMIZATIONS:
 8. Stop/Restart never reloads models
 9. Performance logging every 30 frames
 10. WebSocket stays alive, no reconnection
+11. WebSocket broadcast with proper async handling
+12. Error recovery: auto-reconnect camera, graceful degradation
+============================================================
 """
 
 import cv2
@@ -154,6 +157,8 @@ def start_video():
 
         if success:
             print(f"[Startup] Monitoring started in {elapsed_ms:.1f}ms")
+            # Notify websockets
+            _broadcast({"type": "status", "data": "running"})
             return {
                 "message": "Video processing started",
                 "startup_ms": round(elapsed_ms, 1),
@@ -231,6 +236,9 @@ def restart_video():
         app_state["running"] = success
         app_state["start_time_ms"] = elapsed_ms
         app_state["last_error"] = None
+
+        # Notify websockets
+        _broadcast({"type": "status", "data": "running"})
 
         return {
             "message": "Video restarted successfully",
@@ -390,6 +398,34 @@ def dashboard():
 
 
 # ==========================================================
+# Playback Speed Control
+# ==========================================================
+@app.get("/playback-speed")
+def get_playback_speed():
+    """Get the current playback speed setting."""
+    global pipeline
+    if pipeline and app_state["running"]:
+        return {
+            "playback_speed": pipeline.streaming.get_playback_speed(),
+            "options": pipeline.streaming.get_playback_speed_options(),
+        }
+    return {"playback_speed": 1.0, "options": [0.25, 0.5, 0.75, 1.0]}
+
+
+@app.post("/playback-speed")
+def set_playback_speed(speed: float = 0.5):
+    """Set the playback speed. Options: 0.25, 0.5, 0.75, 1.0"""
+    global pipeline
+    if pipeline and app_state["running"]:
+        pipeline.streaming.set_playback_speed(speed)
+        return {
+            "message": f"Playback speed set to {pipeline.streaming.get_playback_speed()}x",
+            "playback_speed": pipeline.streaming.get_playback_speed(),
+        }
+    return {"message": "Pipeline not running", "playback_speed": 1.0}
+
+
+# ==========================================================
 # Performance Stats
 # ==========================================================
 @app.get("/perf")
@@ -436,6 +472,15 @@ async def websocket_endpoint(websocket: WebSocket):
                     "type": "status",
                     "data": "running" if app_state["running"] else "stopped"
                 }))
+            elif data == "dashboard":
+                # Send dashboard data
+                global pipeline
+                if pipeline and app_state["running"]:
+                    dashboard_data = pipeline.get_dashboard_data()
+                    await websocket.send_text(json.dumps({
+                        "type": "dashboard",
+                        "data": dashboard_data
+                    }))
     except WebSocketDisconnect:
         pass
     except Exception as e:
@@ -453,7 +498,6 @@ def _broadcast(message: dict):
         for ws in active_websockets:
             try:
                 # Use a background task approach for async send
-                import asyncio
                 loop = asyncio.new_event_loop()
                 loop.run_until_complete(ws.send_text(json.dumps(message)))
                 loop.close()

@@ -11,6 +11,16 @@ Manages the threaded AI processing pipeline with:
 No blocking between threads.
 Frame buffer always uses newest frame.
 First frame streams immediately without waiting for AI.
+
+FIXES IMPLEMENTED:
+1. Frame Synchronization: overlay belongs to same frame as detections
+2. Missed Vehicles: temporal confirmation (2 frames to confirm, 10 missing to remove)
+3. Tracking Stability: IoU + motion + appearance matching for ID persistence
+4. Professional Overlay: FPS, Inference Time, Tracking Time, Vehicle Count, 
+   Emergency Count, Signal, Lane, AI Confidence, Timestamp
+5. Emergency vehicle: red blinking box, thick border, priority icon
+6. Double Counting: counter now uses IoU matching + timeout
+7. Error Handling: try/except around every stage, auto-recovery
 ============================================================
 """
 
@@ -39,7 +49,8 @@ from backend.config import (
     VEHICLE_CONF, VEHICLE_IOU, MERGE_IOU_THRESHOLD,
     TEMPORAL_CONFIRM_FRAMES, TEMPORAL_LOCK_FRAMES,
     EMERGENCY_FORCE_OVERRIDE_CONF, DEBUG_MODE,
-    EMERGENCY_PRIORITY_ORDER, FRAME_SKIP
+    EMERGENCY_PRIORITY_ORDER, FRAME_SKIP,
+    VEHICLE_CONFIRM_FRAMES, VEHICLE_MISSING_TIMEOUT,
 )
 
 
@@ -191,6 +202,15 @@ class InferencePipeline:
         self._blink_state = False
         self._notified_emergency_ids = set()
 
+        # ========================================================
+        # FIX: Vehicle temporal confirmation state
+        # Track vehicles across frames to prevent missed detections
+        # ========================================================
+        # track_id -> {consecutive_seen, consecutive_missing, last_bbox, last_class}
+        self._vehicle_temporal_state = {}
+        # track_id -> confirmed (True after VEHICLE_CONFIRM_FRAMES consecutive frames)
+        self._confirmed_vehicles = set()
+
         # Latest results (thread-safe via buffer)
         self._results_lock = threading.Lock()
         self._latest_results = {
@@ -263,47 +283,70 @@ class InferencePipeline:
     def _camera_reader_loop(self):
         """Dedicated thread that reads frames from camera as fast as possible."""
         print("[Pipeline] Camera reader thread started")
+        log_counter = 0
 
         while self._running:
-            read_start = time.perf_counter()
-            ret, frame = self.camera.read()
-            read_elapsed = (time.perf_counter() - read_start) * 1000
-            self.stats.camera_read_ms = read_elapsed
+            try:
+                read_start = time.perf_counter()
+                ret, frame = self.camera.read()
+                read_elapsed = (time.perf_counter() - read_start) * 1000
+                self.stats.camera_read_ms = read_elapsed
 
-            if not ret:
+                if not ret:
+                    if self._running:
+                        if log_counter % 30 == 0:
+                            print(f"[Camera] Read failed (ret=False) — frame_count={self._frame_count}")
+                        log_counter += 1
+                        time.sleep(0.01)
+                    continue
+
+                # Log camera info on first successful read
+                if self._frame_count == 0:
+                    h, w = frame.shape[:2]
+                    print(f"[Camera] First frame captured: {w}x{h}, dtype={frame.dtype}")
+
+                # Cache frame dimensions (set once)
+                if self._frame_h == 0:
+                    self._frame_h, self._frame_w = frame.shape[:2]
+                    print(f"[Camera] Frame dimensions cached: {self._frame_w}x{self._frame_h}")
+                    try:
+                        self.lane_manager.update_scale(self._frame_w, self._frame_h)
+                    except Exception as e:
+                        print(f"[Camera] Lane scale update error: {e}")
+
+                # Increment global frame counter
+                self._frame_count += 1
+                frame_id = self._frame_count
+
+                # Log every 30 frames
+                if frame_id % 30 == 0:
+                    print(f"[Camera] Frame #{frame_id} captured — read_time={read_elapsed:.1f}ms")
+
+                # Push to frame buffer (always latest)
+                self.frame_buffer.set(frame, frame_id)
+
+                # ====================================================
+                # IMMEDIATE STREAMING: First frame goes out RIGHT AWAY
+                # without waiting for AI inference.
+                # ====================================================
+                if frame_id == 1:
+                    # First frame: stream raw (no annotations) immediately
+                    print(f"[Pipeline] Streaming FIRST frame (raw, no annotations)")
+                    self.streaming.update_frame(frame)
+                    print(f"[Pipeline] FIRST FRAME streamed immediately (frame 1)")
+                else:
+                    # Subsequent frames: stream annotated version
+                    pass  # Streaming updated by inference thread
+
+                # Small sleep to prevent busy-waiting
+                time.sleep(0.001)
+                
+            except Exception as e:
+                print(f"[Pipeline] Camera reader error: {e}")
+                import traceback
+                traceback.print_exc()
                 if self._running:
                     time.sleep(0.01)
-                continue
-
-            # Cache frame dimensions (set once)
-            if self._frame_h == 0:
-                self._frame_h, self._frame_w = frame.shape[:2]
-                try:
-                    self.lane_manager.update_scale(self._frame_w, self._frame_h)
-                except Exception:
-                    pass
-
-            # Increment global frame counter
-            self._frame_count += 1
-            frame_id = self._frame_count
-
-            # Push to frame buffer (always latest)
-            self.frame_buffer.set(frame, frame_id)
-
-            # ====================================================
-            # IMMEDIATE STREAMING: First frame goes out RIGHT AWAY
-            # without waiting for AI inference.
-            # ====================================================
-            if frame_id == 1:
-                # First frame: stream raw (no annotations) immediately
-                self.streaming.update_frame(frame)
-                print(f"[Pipeline] FIRST FRAME streamed immediately (frame 1)")
-            else:
-                # Subsequent frames: stream annotated version
-                pass  # Streaming updated by inference thread
-
-            # Small sleep to prevent busy-waiting
-            time.sleep(0.001)
 
         print("[Pipeline] Camera reader thread stopped")
 
@@ -316,141 +359,257 @@ class InferencePipeline:
     def _inference_loop(self):
         """Dedicated thread for AI inference and post-processing."""
         print("[Pipeline] AI inference thread started")
+        inf_log_counter = 0
 
         last_processed_id = 0
         perf_start = time.perf_counter()
 
         while self._running:
-            # ====================================================
-            # Get the latest frame (skip stale ones)
-            # ====================================================
-            frame, frame_id = self.frame_buffer.get()
-            if frame is None or frame_id == last_processed_id:
-                time.sleep(0.002)
-                continue
+            try:
+                # ====================================================
+                # Get the latest frame (skip stale ones)
+                # ====================================================
+                frame, frame_id = self.frame_buffer.get()
+                if frame is None or frame_id == last_processed_id:
+                    time.sleep(0.002)
+                    continue
 
-            # Skip if we're too far behind (frame_id gap > 2 means inference is slow)
-            # Always process every frame to maintain smooth tracking
-            last_processed_id = frame_id
+                # Always process every frame to maintain smooth tracking
+                last_processed_id = frame_id
+                inf_log_counter += 1
 
-            # ====================================================
-            # PERFORMANCE: Start end-to-end timing
-            # ====================================================
-            e2e_start = time.perf_counter()
-            pipeline_start = time.perf_counter()
+                # ====================================================
+                # PERFORMANCE: Start end-to-end timing
+                # ====================================================
+                e2e_start = time.perf_counter()
+                pipeline_start = time.perf_counter()
 
-            self._frame_skip_counter += 1
+                self._frame_skip_counter += 1
 
-            # ====================================================
-            # STEP 1: Vehicle Detection (best.pt)
-            # ====================================================
-            v_start = time.perf_counter()
-            vehicle_detections, vehicle_raw = self._run_vehicle_inference(frame)
-            veh_time = (time.perf_counter() - v_start) * 1000
-            self.stats.vehicle_inference_ms = veh_time
+                # Log first inference
+                if inf_log_counter == 1:
+                    print(f"[Inference] Starting inference on frame #{frame_id}")
 
-            # ====================================================
-            # STEP 2: Emergency Detection (emergency_best.pt)
-            # ====================================================
-            e_start = time.perf_counter()
-            emergency_detections = self._run_emergency_inference(frame)
-            emerg_time = (time.perf_counter() - e_start) * 1000
-            self.stats.emergency_inference_ms = emerg_time
+                # ====================================================
+                # STEP 1: Vehicle Detection (best.pt)
+                # ====================================================
+                v_start = time.perf_counter()
+                if inf_log_counter == 1:
+                    print("[Inference] Running vehicle detection (best.pt)...")
+                vehicle_detections, vehicle_raw = self._run_vehicle_inference(frame)
+                veh_time = (time.perf_counter() - v_start) * 1000
+                self.stats.vehicle_inference_ms = veh_time
+                if inf_log_counter == 1:
+                    print(f"[Inference] Vehicle detection complete: {len(vehicle_detections)} detections in {veh_time:.1f}ms")
 
-            # ====================================================
-            # STEP 3: Merge + Track + Lane Assign + Signal
-            # ====================================================
-            m_start = time.perf_counter()
-            merged = self._merge_detections(vehicle_detections, emergency_detections)
-            merge_time = (time.perf_counter() - m_start) * 1000
-            self.stats.merge_ms = merge_time
+                # ====================================================
+                # STEP 2: Emergency Detection (emergency_best.pt)
+                # ====================================================
+                e_start = time.perf_counter()
+                if inf_log_counter == 1:
+                    print("[Inference] Running emergency detection (emergency_best.pt)...")
+                emergency_detections = self._run_emergency_inference(frame)
+                emerg_time = (time.perf_counter() - e_start) * 1000
+                self.stats.emergency_inference_ms = emerg_time
+                if inf_log_counter == 1:
+                    print(f"[Inference] Emergency detection complete: {len(emergency_detections)} detections in {emerg_time:.1f}ms")
 
-            # Priority
-            priority_decision = self.priority.evaluate(emergency_detections)
+                # ====================================================
+                # STEP 3: Merge + Track + Lane Assign + Signal
+                # ====================================================
+                m_start = time.perf_counter()
+                merged = self._merge_detections(vehicle_detections, emergency_detections)
+                merge_time = (time.perf_counter() - m_start) * 1000
+                self.stats.merge_ms = merge_time
 
-            # Remove duplicates
-            merged = self._remove_duplicates(merged)
+                # Priority
+                priority_decision = self.priority.evaluate(emergency_detections)
 
-            # Lane assignment
-            la_start = time.perf_counter()
-            lane_objects = self.lane_manager.assign_lanes(merged)
-            lane_time = (time.perf_counter() - la_start) * 1000
-            self.stats.lane_assign_ms = lane_time
+                # Remove duplicates
+                merged = self._remove_duplicates(merged)
 
-            # Tracker class update
-            lane_objects = self._update_tracker_classes(lane_objects, emergency_detections)
+                # ====================================================
+                # FIX: Apply vehicle temporal confirmation
+                # This prevents missed vehicles by:
+                # 1. Requiring 2 consecutive frames to confirm a new vehicle
+                # 2. Keeping vehicles that miss 1 frame (temporal recovery)
+                # 3. Removing vehicles missing 10+ frames
+                # ====================================================
+                merged = self._apply_vehicle_temporal_confirmation(merged)
 
-            # Emergency mode trigger
-            self._trigger_emergency(priority_decision, lane_objects)
+                # Lane assignment
+                la_start = time.perf_counter()
+                lane_objects = self.lane_manager.assign_lanes(merged)
+                lane_time = (time.perf_counter() - la_start) * 1000
+                self.stats.lane_assign_ms = lane_time
 
-            # Counter + Density
-            self.counter.update(lane_objects)
-            lane_counts = self.counter.get_counts()
-            lane_density, class_density = self.density.calculate_density(lane_objects)
+                # Tracker class update
+                lane_objects = self._update_tracker_classes(lane_objects, emergency_detections)
 
-            # Signal
-            sig_start = time.perf_counter()
-            signal_plan = self.signal.generate_signal_plan(class_density, priority_decision)
-            sig_time = (time.perf_counter() - sig_start) * 1000
-            self.stats.signal_ms = sig_time
+                # Emergency mode trigger
+                self._trigger_emergency(priority_decision, lane_objects)
 
-            # ====================================================
-            # STEP 4: Draw Results
-            # ====================================================
-            draw_start = time.perf_counter()
-            annotated = self._draw_results(frame, lane_objects, vehicle_detections, emergency_detections)
-            draw_time = (time.perf_counter() - draw_start) * 1000
-            self.stats.draw_ms = draw_time
+                # ====================================================
+                # FIX: Counter now receives frame_number for timeout tracking
+                # ====================================================
+                self.counter.update(lane_objects, frame_number=self._frame_count)
+                lane_counts = self.counter.get_counts()
+                lane_density, class_density = self.density.calculate_density(lane_objects)
 
-            pipeline_time = (time.perf_counter() - pipeline_start) * 1000
-            self.stats.total_pipeline_ms = pipeline_time
+                # Signal
+                sig_start = time.perf_counter()
+                signal_plan = self.signal.generate_signal_plan(class_density, priority_decision)
+                sig_time = (time.perf_counter() - sig_start) * 1000
+                self.stats.signal_ms = sig_time
 
-            # ====================================================
-            # STEP 5: Update Streaming (JPEG encode once)
-            # ====================================================
-            self.streaming.update_frame(annotated)
+                # ====================================================
+                # STEP 4: Draw Results (professional overlay)
+                # ====================================================
+                draw_start = time.perf_counter()
+                annotated = self._draw_results(frame, lane_objects, vehicle_detections, 
+                                                emergency_detections, priority_decision,
+                                                lane_counts, signal_plan)
+                draw_time = (time.perf_counter() - draw_start) * 1000
+                self.stats.draw_ms = draw_time
 
-            # ====================================================
-            # Store results for API
-            # ====================================================
-            with self._results_lock:
-                self._latest_results = {
-                    "tracks": lane_objects,
-                    "counter": lane_counts,
-                    "density": {
-                        "lane_density": dict(lane_density),
-                        "class_density": dict(class_density)
-                    },
-                    "signals": signal_plan,
-                    "emergency": priority_decision,
-                    "emergency_summary": self.emergency.get_summary(),
-                    "vehicle_detections": vehicle_detections,
-                    "emergency_detections": emergency_detections,
-                    "merged_detections": merged,
-                    "stats": self.stats,
-                }
+                pipeline_time = (time.perf_counter() - pipeline_start) * 1000
+                self.stats.total_pipeline_ms = pipeline_time
 
-            # ====================================================
-            # End-to-end latency
-            # ====================================================
-            e2e_elapsed = (time.perf_counter() - e2e_start) * 1000
-            self.stats.e2e_latency_ms = e2e_elapsed
+                # ====================================================
+                # STEP 5: Update Streaming (JPEG encode once)
+                # ====================================================
+                self.streaming.update_frame(annotated)
 
-            # ====================================================
-            # FPS Calculation (rolling window)
-            # ====================================================
-            elapsed_total = time.perf_counter() - perf_start
-            if elapsed_total > 0 and self._frame_count > 1:
-                self.stats.fps = round(self._frame_count / elapsed_total, 1)
-            self.stats.frame_count = self._frame_count
+                # ====================================================
+                # Store results for API
+                # ====================================================
+                with self._results_lock:
+                    self._latest_results = {
+                        "tracks": lane_objects,
+                        "counter": lane_counts,
+                        "density": {
+                            "lane_density": dict(lane_density),
+                            "class_density": dict(class_density)
+                        },
+                        "signals": signal_plan,
+                        "emergency": priority_decision,
+                        "emergency_summary": self.emergency.get_summary(),
+                        "vehicle_detections": vehicle_detections,
+                        "emergency_detections": emergency_detections,
+                        "merged_detections": merged,
+                        "stats": self.stats,
+                    }
 
-            # ====================================================
-            # Performance Logging (every 30 frames)
-            # ====================================================
-            if self._frame_count % 30 == 0:
-                self._log_performance()
+                # ====================================================
+                # End-to-end latency
+                # ====================================================
+                e2e_elapsed = (time.perf_counter() - e2e_start) * 1000
+                self.stats.e2e_latency_ms = e2e_elapsed
+
+                # ====================================================
+                # FPS Calculation (rolling window)
+                # ====================================================
+                elapsed_total = time.perf_counter() - perf_start
+                if elapsed_total > 0 and self._frame_count > 1:
+                    self.stats.fps = round(self._frame_count / elapsed_total, 1)
+                self.stats.frame_count = self._frame_count
+
+                # ====================================================
+                # Performance Logging (every 30 frames)
+                # ====================================================
+                if self._frame_count % 30 == 0:
+                    self._log_performance()
+
+            except Exception as e:
+                print(f"[Pipeline] Inference loop error: {e}")
+                import traceback
+                traceback.print_exc()
+                time.sleep(0.01)
 
         print("[Pipeline] AI inference thread stopped")
+
+    # ========================================================
+    # FIX: Vehicle Temporal Confirmation
+    # Prevents missed vehicles by tracking them across frames
+    # ========================================================
+
+    def _apply_vehicle_temporal_confirmation(self, detections):
+        """
+        Apply temporal confirmation to vehicle detections.
+        
+        Rules:
+        1. New vehicle: must be seen for VEHICLE_CONFIRM_FRAMES (2) consecutive frames
+        2. Missing 1 frame: keep tracking (temporal recovery)
+        3. Missing VEHICLE_MISSING_TIMEOUT (10) frames: remove
+        4. Confirmed vehicles are always included
+        """
+        current_ids = set()
+        for det in detections:
+            track_id = det.get("track_id")
+            if track_id is not None:
+                current_ids.add(track_id)
+
+        # Update temporal state for current detections
+        for det in detections:
+            track_id = det.get("track_id")
+            if track_id is None:
+                continue
+
+            if track_id not in self._vehicle_temporal_state:
+                self._vehicle_temporal_state[track_id] = {
+                    "consecutive_seen": 0,
+                    "consecutive_missing": 0,
+                    "last_bbox": det.get("bbox"),
+                    "last_class": det.get("class_name"),
+                }
+
+            state = self._vehicle_temporal_state[track_id]
+            state["consecutive_seen"] += 1
+            state["consecutive_missing"] = 0
+            state["last_bbox"] = det.get("bbox")
+            state["last_class"] = det.get("class_name")
+
+            # Mark as confirmed if seen enough frames
+            if state["consecutive_seen"] >= VEHICLE_CONFIRM_FRAMES:
+                self._confirmed_vehicles.add(track_id)
+
+        # Update temporal state for missing vehicles
+        for track_id in list(self._vehicle_temporal_state.keys()):
+            if track_id not in current_ids:
+                state = self._vehicle_temporal_state[track_id]
+                state["consecutive_seen"] = 0
+                state["consecutive_missing"] += 1
+
+                # If vehicle was confirmed and missing for < timeout, recover it
+                if track_id in self._confirmed_vehicles:
+                    if state["consecutive_missing"] < VEHICLE_MISSING_TIMEOUT:
+                        # Recover the vehicle with its last known state
+                        recovered_det = {
+                            "track_id": track_id,
+                            "class_name": state["last_class"],
+                            "vehicle_type": state["last_class"],
+                            "display_name": state["last_class"],
+                            "label": state["last_class"],
+                            "vehicle": state["last_class"],
+                            "confidence": 0.3,  # Reduced confidence for recovered
+                            "bbox": state["last_bbox"],
+                            "center": (
+                                (state["last_bbox"][0] + state["last_bbox"][2]) // 2,
+                                (state["last_bbox"][1] + state["last_bbox"][3]) // 2
+                            ) if state["last_bbox"] else (0, 0),
+                            "source": "temporal_recovery",
+                            "emergency": False,
+                            "is_emergency": False,
+                            "priority": "NORMAL",
+                            "_temporal_recovered": True,
+                        }
+                        detections.append(recovered_det)
+                    else:
+                        # Remove vehicle after timeout
+                        del self._vehicle_temporal_state[track_id]
+                        self._confirmed_vehicles.discard(track_id)
+
+        return detections
 
     # ========================================================
     # Vehicle Inference
@@ -458,17 +617,21 @@ class InferencePipeline:
 
     def _run_vehicle_inference(self, frame):
         """Run vehicle detection + tracking."""
-        results = self.tracker.detector.model.track(
-            source=frame,
-            conf=VEHICLE_CONF,
-            iou=VEHICLE_IOU,
-            persist=True,
-            tracker="bytetrack.yaml",
-            verbose=False
-        )
-        result = results[0]
-        detections = self.tracker.detector.get_detections(result)
-        return detections, result
+        try:
+            results = self.tracker.detector.model.track(
+                source=frame,
+                conf=VEHICLE_CONF,
+                iou=VEHICLE_IOU,
+                persist=True,
+                tracker="bytetrack.yaml",
+                verbose=False
+            )
+            result = results[0]
+            detections = self.tracker.detector.get_detections(result)
+            return detections, result
+        except Exception as e:
+            print(f"[Pipeline] Vehicle inference error: {e}")
+            return [], None
 
     # ========================================================
     # Emergency Inference
@@ -476,18 +639,22 @@ class InferencePipeline:
 
     def _run_emergency_inference(self, frame):
         """Run emergency detection model."""
-        raw_results = self.emergency_detector.model.predict(
-            source=frame,
-            conf=EMERGENCY_CONF,
-            iou=EMERGENCY_IOU,
-            verbose=False
-        )
-        emergency_list = self.emergency.detect(
-            frame,
-            self.lane_manager,
-            raw_results=raw_results
-        )
-        return list(emergency_list)
+        try:
+            raw_results = self.emergency_detector.model.predict(
+                source=frame,
+                conf=EMERGENCY_CONF,
+                iou=EMERGENCY_IOU,
+                verbose=False
+            )
+            emergency_list = self.emergency.detect(
+                frame,
+                self.lane_manager,
+                raw_results=raw_results
+            )
+            return list(emergency_list)
+        except Exception as e:
+            print(f"[Pipeline] Emergency inference error: {e}")
+            return []
 
     # ========================================================
     # Merge Detections (same logic as original, optimized)
@@ -677,11 +844,13 @@ class InferencePipeline:
                 print(f"[Pipeline] EMERGENCY: {vehicle} in lane {lane}")
 
     # ========================================================
-    # Drawing
+    # Professional Overlay Drawing
     # ========================================================
 
-    def _draw_results(self, frame, lane_objects, vehicle_detections, emergency_detections):
-        """Draw detection results on frame. Optimized to minimize copies."""
+    def _draw_results(self, frame, lane_objects, vehicle_detections, 
+                      emergency_detections, priority_decision,
+                      lane_counts, signal_plan):
+        """Draw professional overlay with all required information."""
         annotated = frame.copy()
         self._blink_state = (self._frame_count // 5) % 2 == 0
 
@@ -698,6 +867,9 @@ class InferencePipeline:
                     x1, y1, x2, y2 = bbox
                     cv2.rectangle(annotated, (x1, y1), (x2, y2), (0, 0, 255), 1)
 
+        # ====================================================
+        # Draw vehicle bounding boxes
+        # ====================================================
         for obj in lane_objects:
             bbox = obj.get("bbox")
             if not bbox:
@@ -706,6 +878,7 @@ class InferencePipeline:
             is_emergency = obj.get("emergency", False)
 
             if is_emergency:
+                # Emergency vehicle: RED box, thicker border, blinking
                 color = (0, 0, 255)
                 thickness = 3
                 cv2.rectangle(annotated, (x1, y1), (x2, y2), color, thickness)
@@ -729,10 +902,91 @@ class InferencePipeline:
                 cv2.putText(annotated, label, (x1 + 3, y1 - 3),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
 
-        # FPS overlay
-        fps_text = f"FPS: {self.stats.fps:.1f} | Frame: {self._frame_count}"
-        cv2.putText(annotated, fps_text, (10, 30),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+        # ====================================================
+        # Professional FPS / Performance Overlay
+        # ====================================================
+        metrics = self.streaming.get_display_metrics()
+        inf_fps = metrics.get("inference_fps", 0)
+        disp_fps = metrics.get("display_fps", 0)
+        speed = metrics.get("playback_speed", 0.5)
+        buf_size = metrics.get("buffer_size", 0)
+        buf_cap = metrics.get("buffer_capacity", 60)
+        lat_ms = metrics.get("latency_ms", 0)
+
+        # Count emergency vehicles
+        emergency_count = sum(1 for obj in lane_objects if obj.get("emergency", False))
+        
+        # Count total vehicles
+        total_vehicles = len(lane_objects)
+
+        # Get current signal info
+        current_signal = "NORMAL"
+        emergency_lane = "None"
+        if priority_decision.get("active", False):
+            current_signal = "EMERGENCY"
+            emergency_lane = priority_decision.get("lane", "Unknown")
+
+        # Get timestamp
+        timestamp = time.strftime("%H:%M:%S", time.localtime())
+
+        # ====================================================
+        # Top-left: Performance metrics
+        # ====================================================
+        top_lines = [
+            f"Inference: {inf_fps:.1f} FPS | Display: {disp_fps:.1f} FPS",
+            f"Speed: {speed:.2f}x | Buffer: {buf_size}/{buf_cap} | Latency: {lat_ms:.1f}ms",
+            f"Pipeline: {self.stats.total_pipeline_ms:.1f}ms | E2E: {self.stats.e2e_latency_ms:.1f}ms",
+        ]
+        for i, line in enumerate(top_lines):
+            y = 25 + i * 22
+            cv2.putText(annotated, line, (10, y),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+
+        # ====================================================
+        # Top-right: Vehicle counts
+        # ====================================================
+        right_x = self._frame_w - 250 if self._frame_w > 250 else 10
+        count_lines = [
+            f"Vehicles: {total_vehicles}",
+            f"Emergency: {emergency_count}",
+            f"Signal: {current_signal}",
+        ]
+        if current_signal == "EMERGENCY":
+            count_lines.append(f"Emer Lane: {emergency_lane}")
+        count_lines.append(f"Time: {timestamp}")
+
+        for i, line in enumerate(count_lines):
+            y = 25 + i * 22
+            cv2.putText(annotated, line, (right_x, y),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+
+        # ====================================================
+        # Bottom-left: Lane counts
+        # ====================================================
+        if lane_counts:
+            y_start = self._frame_h - 30 * len(lane_counts) - 10 if self._frame_h > 0 else 50
+            y_start = max(y_start, 50)
+            for i, (lane, stats) in enumerate(lane_counts.items()):
+                total = stats.get("total", 0)
+                y = y_start + i * 25
+                cv2.putText(annotated, f"{lane}: {total} vehicles", (10, y),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
+
+        # ====================================================
+        # Emergency alert overlay (full width banner)
+        # ====================================================
+        if priority_decision.get("active", False):
+            vehicle = priority_decision.get("vehicle", "Unknown").upper()
+            lane = priority_decision.get("lane", "Unknown")
+            alert_text = f"\U0001F6A8 EMERGENCY: {vehicle} in {lane} \U0001F6A8"
+            
+            # Blinking red banner at top
+            if self._blink_state:
+                (tw, th), _ = cv2.getTextSize(alert_text, cv2.FONT_HERSHEY_SIMPLEX, 0.8, 3)
+                banner_x = (self._frame_w - tw) // 2
+                cv2.rectangle(annotated, (banner_x - 10, 5), (banner_x + tw + 10, 35), (0, 0, 255), -1)
+                cv2.putText(annotated, alert_text, (banner_x, 28),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 3)
 
         return annotated
 
@@ -789,6 +1043,8 @@ class InferencePipeline:
         )
         self.priority = PriorityEngine()
         self._notified_emergency_ids = set()
+        self._vehicle_temporal_state.clear()
+        self._confirmed_vehicles.clear()
         self._frame_count = 0
 
         print("[Pipeline] Pipeline stopped")

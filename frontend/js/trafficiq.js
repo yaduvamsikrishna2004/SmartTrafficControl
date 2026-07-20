@@ -309,16 +309,28 @@ function updateStatistics(data) {
 // CAMERA / VIDEO FEED
 // ==========================================================
 
+// Track whether we've already set the MJPEG stream URL
+// to avoid reconnecting every refresh cycle
+let _mjpegStreamSet = false;
+
 function updateCameraFeed(data) {
   const img = $('cameraFeed');
   if (!img) return;
   
-  // Set video feed source
-  const feedUrl = `${API.videoFeed}?t=${Date.now()}`;
-  if (monitoringActive) {
+  // ============================================================
+  // FIX: Only set img.src ONCE when monitoring starts.
+  // Do NOT reset it every 500ms — that kills the MJPEG connection
+  // and causes the browser to show a black screen.
+  // ============================================================
+  if (monitoringActive && !_mjpegStreamSet) {
+    const feedUrl = `${API.videoFeed}?t=${Date.now()}`;
+    console.log('[CameraFeed] Setting MJPEG stream URL (one-time):', feedUrl);
     img.src = feedUrl;
     img.style.display = 'block';
-  } else {
+    _mjpegStreamSet = true;
+  } else if (!monitoringActive) {
+    // Reset the flag when monitoring stops
+    _mjpegStreamSet = false;
     img.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%221280%22 height=%22720%22 viewBox=%220 0 1280 720%22%3E%3Crect width=%221280%22 height=%22720%22 fill=%22070B14%22/%3E%3Crect x=%2230%22 y=%2230%22 width=%221220%22 height=%22660%22 rx=%2220%22 fill=%22101827%22/%3E%3Cpath d=%22M530 220h220c70 0 126 56 126 126v128c0 70-56 126-126 126H530c-70 0-126-56-126-126V346c0-70 56-126 126-126z%22 fill=%223B82F6%22 opacity=%220.5%22/%3E%3Ccircle cx=%22590%22 cy=%22410%22 r=%2270%22 fill=%22white%22 opacity=%220.1%22/%3E%3C/svg%3E';
   }
 
@@ -726,6 +738,8 @@ async function handleStartMonitoring() {
     const result = await apiPost(API.startVideo);
     if (result) {
       monitoringActive = true;
+      // Reset MJPEG flag so the stream URL gets set on next refreshDashboard call
+      _mjpegStreamSet = false;
       showToast('Monitoring started successfully', 'success');
       addTimelineEvent('▶️', 'Monitoring Started', 'Camera, detection, and tracking systems activated', 'green');
       updateButtonStates();
@@ -747,6 +761,7 @@ async function handleStopMonitoring() {
     const result = await apiPost(API.stopVideo);
     if (result) {
       monitoringActive = false;
+      _mjpegStreamSet = false;
       showToast('Monitoring stopped', 'warning');
       addTimelineEvent('⏹️', 'Monitoring Stopped', 'All systems paused', 'yellow');
       updateButtonStates();
@@ -772,6 +787,7 @@ async function handleRestart() {
     const result = await apiPost(API.startVideo);
     if (result) {
       monitoringActive = true;
+      _mjpegStreamSet = false;
       showToast('System restarted successfully', 'success');
       addTimelineEvent('🔄', 'System Restarted', 'Full system restart completed', 'cyan');
       updateButtonStates();
