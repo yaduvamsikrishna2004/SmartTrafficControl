@@ -29,7 +29,8 @@ const API = {
   signals: `${API_BASE}/signals`,
   emergency: `${API_BASE}/emergency`,
   restart: `${API_BASE}/restart-video`,
-  perf: `${API_BASE}/perf`
+  perf: `${API_BASE}/perf`,
+  playbackSpeed: `${API_BASE}/playback-speed`
 };
 
 const REFRESH_INTERVAL = 500;
@@ -826,6 +827,73 @@ function updateButtonStates() {
 }
 
 // ==========================================================
+// PLAYBACK SPEED CONTROL
+// ==========================================================
+
+function initializePlaybackSpeed() {
+  const buttons = document.querySelectorAll('.playback-btn');
+  const currentLabel = $('playbackCurrent');
+  const fill = $('playbackFill');
+
+  // Set initial speed from backend
+  if (monitoringActive) {
+    apiGet(API.playbackSpeed).then(resp => {
+      if (resp && resp.playback_speed) {
+        setActivePlaybackSpeed(resp.playback_speed, buttons, currentLabel, fill);
+      }
+    }).catch(() => {});
+  }
+
+  buttons.forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const speed = parseFloat(btn.dataset.speed);
+      if (isNaN(speed)) return;
+
+      // Optimistically update UI immediately
+      setActivePlaybackSpeed(speed, buttons, currentLabel, fill);
+      showToast(`Playback speed: ${speed}x`, 'info');
+
+      // Send to backend (does NOT restart camera, does NOT affect inference)
+      try {
+        const resp = await fetch(API.playbackSpeed, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `speed=${speed}`
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          console.log('[Playback] Speed set to:', data.playback_speed);
+          addTimelineEvent('⏱️', 'Playback Speed Changed', `Set to ${data.playback_speed}x`, 'blue');
+        }
+      } catch (err) {
+        console.error('[Playback] Failed to set speed:', err);
+      }
+    });
+  });
+}
+
+function setActivePlaybackSpeed(speed, buttons, currentLabel, fill) {
+  // Update button active state
+  buttons.forEach(b => b.classList.remove('active'));
+  buttons.forEach(b => {
+    if (parseFloat(b.dataset.speed) === speed) {
+      b.classList.add('active');
+    }
+  });
+
+  // Update label
+  if (currentLabel) currentLabel.textContent = `${speed}x`;
+
+  // Update visual fill bar
+  if (fill) {
+    const minSpeed = 0.5;
+    const maxSpeed = 1.0;
+    const percent = ((speed - minSpeed) / (maxSpeed - minSpeed)) * 100;
+    fill.style.width = `${Math.round(percent)}%`;
+  }
+}
+
+// ==========================================================
 // SIDEBAR
 // ==========================================================
 
@@ -938,6 +1006,7 @@ async function initializeDashboard() {
   console.log('🚦 TrafficIQ Dashboard Initializing...');
   
   initializeSidebar();
+  initializePlaybackSpeed();
   initializeCharts();
   addInitialTimelineEvents();
   

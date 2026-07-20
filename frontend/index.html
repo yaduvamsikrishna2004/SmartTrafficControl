@@ -203,6 +203,27 @@
         </div>
       </section>
 
+      <!-- ===== PLAYBACK SPEED CONTROL ===== -->
+      <section class="playback-control">
+        <div class="playback-control-header">
+          <h3>Playback Speed</h3>
+          <span class="playback-current" id="playbackCurrent">0.85x</span>
+        </div>
+        <div class="playback-buttons" id="playbackButtons">
+          <button class="playback-btn" data-speed="0.5">0.5x</button>
+          <button class="playback-btn" data-speed="0.75">0.75x</button>
+          <button class="playback-btn active" data-speed="0.85">0.85x</button>
+          <button class="playback-btn" data-speed="1.0">1.0x</button>
+        </div>
+        <div class="playback-label-row">
+          <span class="playback-label slow">Slow</span>
+          <div class="playback-track">
+            <div class="playback-fill" id="playbackFill" style="width:45%"></div>
+          </div>
+          <span class="playback-label fast">Real Time</span>
+        </div>
+      </section>
+
       <!-- ===== SYSTEM STATUS PANEL ===== -->
       <section class="system-status-panel" id="sectionMonitoring">
         <div class="status-card status-green" id="statusBackend">

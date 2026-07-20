@@ -80,15 +80,22 @@ API_REFRESH_MS = 1000
 JPEG_QUALITY = 80
 
 # -----------------------------
-# Slow Motion Playback Control
+# Playback / Display Speed Control
 # -----------------------------
+# Base display frame rate for the MJPEG stream.
+# The actual display FPS = DISPLAY_FPS_BASE * PLAYBACK_SPEED.
+# At 1.0x speed → 20 FPS display (smooth CCTV playback)
+# At 0.5x speed → 10 FPS display (slow motion)
+# Inference runs at full speed regardless.
+DISPLAY_FPS_BASE = 20
+
 # Playback speed multiplier for the displayed video.
 # AI inference runs at full speed regardless.
 # 1.0  = real-time (no slow motion)
+# 0.85 = ~15% slower (professional CCTV demo look)
 # 0.75 = 25% slower
 # 0.5  = half speed (each frame held 2x longer)
-# 0.25 = quarter speed (each frame held 4x longer)
-PLAYBACK_SPEED = 0.5
+PLAYBACK_SPEED = 0.8
 
 # Circular buffer capacity for processed frames.
 # Larger values allow longer delays but use more memory.
@@ -96,7 +103,7 @@ PLAYBACK_SPEED = 0.5
 FRAME_BUFFER_SIZE = 60
 
 # Available playback speed options for the UI controls
-PLAYBACK_SPEED_OPTIONS = [0.25, 0.5, 0.75, 1.0]
+PLAYBACK_SPEED_OPTIONS = [0.5, 0.75, 0.85, 1.0]
 
 # -----------------------------
 # Debug Mode
