@@ -6,6 +6,8 @@ Author : Vamsi Krishna
 
 Description:
 Detects all emergency vehicles from tracked objects.
+Now uses model.predict() instead of model.track() to avoid
+tracker ID conflicts with the vehicle model.
 
 Supported Vehicles:
     • Ambulance
@@ -20,7 +22,7 @@ from collections import defaultdict
 
 class EmergencyDetector:
 
-    def __init__(self, detector=None, conf=0.30, iou=0.45):
+    def __init__(self, detector=None, conf=0.20, iou=0.45):
 
         self.detector = detector
         self.conf = conf
@@ -41,6 +43,17 @@ class EmergencyDetector:
         self.per_lane_count = defaultdict(int)
         self.per_vehicle_count = defaultdict(int)
 
+        # =====================================================
+        # Temporal confirmation state
+        # =====================================================
+        # Tracks consecutive frames each emergency bbox has been seen
+        # Key: (frame_bbox_key) -> consecutive_count
+        self._temporal_counts = defaultdict(int)
+        # Frames remaining in locked state for each bbox key
+        self._lock_remaining = defaultdict(int)
+        # Whether a bbox key is currently locked as emergency
+        self._locked_emergencies = {}
+
         print("=" * 60)
         print("Emergency Detector Initialized")
         print("=" * 60)
@@ -51,6 +64,7 @@ class EmergencyDetector:
 
         """
         Detect emergency vehicles in the current frame.
+        Uses model.predict() NOT model.track() to prevent tracker ID conflicts.
 
         Parameters
         ----------
@@ -71,13 +85,13 @@ class EmergencyDetector:
             return emergencies
 
         try:
+            # Use predict() instead of track() to avoid tracker ID conflicts
+            # with the vehicle model's ByteTrack instance
             if raw_results is None:
-                results = self.detector.model.track(
+                results = self.detector.model.predict(
                     source=frame,
                     conf=self.conf,
                     iou=self.iou,
-                    persist=True,
-                    tracker="bytetrack.yaml",
                     verbose=False
                 )
             else:
@@ -86,7 +100,7 @@ class EmergencyDetector:
             result = results[0]
 
             if not self._printed_names:
-                print("[Emergency] emergency_results.names:", self.detector.class_names)
+                print("[Emergency] Emergency class names:", self.detector.class_names)
                 self._printed_names = True
 
             if result.boxes is None:
@@ -94,12 +108,9 @@ class EmergencyDetector:
                 self.latest_emergencies = emergencies
                 return emergencies
 
+            # ----- Collect raw detections from emergency model -----
+            raw_detections = []
             for box in result.boxes:
-
-                if box.id is None:
-                    continue
-
-                track_id = int(box.id[0])
                 cls = int(box.cls[0])
                 confidence = float(box.conf[0])
                 x1, y1, x2, y2 = map(int, box.xyxy[0])
@@ -110,10 +121,7 @@ class EmergencyDetector:
                 center = (center_x, center_y)
                 lane = lane_manager.get_lane(center)
 
-                # If lane polygon doesn't contain center, try using bbox center approach
                 if lane is None:
-                    # Still record the emergency, assign a lane name based on x-position
-                    # or mark it as "Unknown" - still count it for emergency detection
                     lane = "Unknown"
 
                 raw_class_name = self.detector.class_names[cls]
@@ -121,20 +129,86 @@ class EmergencyDetector:
                 if class_name is None:
                     continue
 
-                emergencies.append({
+                # Create a bbox hash for temporal tracking
+                # Use quantized bbox to allow small movements
+                bbox_key = f"{x1//10}_{y1//10}_{x2//10}_{y2//10}"
+
+                raw_detections.append({
                     "vehicle": class_name,
                     "class_id": cls,
                     "class_name": class_name,
                     "lane": lane,
                     "confidence": round(confidence, 3),
-                    "track_id": track_id,
                     "bbox": [x1, y1, x2, y2],
                     "center": center,
-                    "source_model": "emergency_model"
+                    "source_model": "emergency_model",
+                    "_bbox_key": bbox_key,
                 })
+
+            # ----- Apply temporal confirmation -----
+            # Decrease all lock counters
+            to_delete = []
+            for key in self._lock_remaining:
+                self._lock_remaining[key] -= 1
+                if self._lock_remaining[key] <= 0:
+                    to_delete.append(key)
+            for key in to_delete:
+                del self._lock_remaining[key]
+                if key in self._locked_emergencies:
+                    del self._locked_emergencies[key]
+
+            # Process this frame's detections
+            current_keys = set()
+            for det in raw_detections:
+                key = det["_bbox_key"]
+                current_keys.add(key)
+
+                if key in self._locked_emergencies:
+                    # Already locked as emergency - keep it
+                    det["_temporal_locked"] = True
+                    continue
+
+                # Increment consecutive count
+                self._temporal_counts[key] += 1
+                if self._temporal_counts[key] >= 2:
+                    # Lock this emergency for 15 frames
+                    self._lock_remaining[key] = 15
+                    self._locked_emergencies[key] = det
+                    det["_temporal_locked"] = True
+                    print(f"[Emergency] TEMPORAL LOCK: {det['vehicle']} at {key} locked for 15 frames")
+                else:
+                    det["_temporal_locked"] = False
+
+            # Clear temporal counts for keys not seen this frame
+            stale_keys = [k for k in self._temporal_counts if k not in current_keys]
+            for k in stale_keys:
+                del self._temporal_counts[k]
+
+            # Add locked emergencies that weren't detected this frame
+            for key, locked_det in self._locked_emergencies.items():
+                if key not in current_keys:
+                    # Re-add the locked detection (with slightly reduced confidence as a signal)
+                    re_add = dict(locked_det)
+                    re_add["_temporal_locked"] = True
+                    re_add["_temporal_recovered"] = True
+                    raw_detections.append(re_add)
+                    print(f"[Emergency] TEMPORAL RECOVER: {re_add['vehicle']} at {key} (re-added from lock)")
+
+            # ----- Assign surrogate track_ids based on locked state -----
+            # We use a hash of the bbox as a surrogate track_id since we're not
+            # using the emergency model's tracker
+            for idx, det in enumerate(raw_detections):
+                # Use a deterministic hash based on bbox for tracking
+                det["track_id"] = abs(hash(det["_bbox_key"])) % (10 ** 8)
+                # Ensure we don't conflict with vehicle tracker IDs
+                det["track_id"] = 900000 + (det["track_id"] % 100000)
+
+            emergencies = raw_detections
 
         except Exception as exc:
             print(f"[Emergency] Detection failed: {exc}")
+            import traceback
+            traceback.print_exc()
             emergencies = []
 
         self._update_counts(emergencies)
@@ -165,7 +239,7 @@ class EmergencyDetector:
 
     def _update_counts(self, emergencies):
 
-        self.current_count = len(emergencies)
+        self.current_count = len([e for e in emergencies if e.get("_temporal_locked", False)])
 
         for emergency in emergencies:
 
@@ -204,6 +278,14 @@ class EmergencyDetector:
 
     # =====================================================
 
+    def reset_temporal(self):
+        """Reset temporal confirmation state (called on engine reset)."""
+        self._temporal_counts.clear()
+        self._lock_remaining.clear()
+        self._locked_emergencies.clear()
+
+    # =====================================================
+
     def print_emergencies(self):
 
         print("=" * 70)
@@ -223,9 +305,8 @@ class EmergencyDetector:
             print()
 
             print(f"Vehicle    : {vehicle['vehicle']}")
-
             print(f"Lane       : {vehicle['lane']}")
-
             print(f"Track ID   : {vehicle['track_id']}")
-
             print(f"Confidence : {vehicle['confidence']}")
+            locked = vehicle.get("_temporal_locked", False)
+            print(f"Locked     : {locked}")

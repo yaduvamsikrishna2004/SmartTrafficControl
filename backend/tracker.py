@@ -65,6 +65,9 @@ class VehicleTracker:
 
         if result.boxes is None:
 
+            if return_results:
+                return tracked_objects, frame, result
+
             return tracked_objects, frame
 
         annotated = result.plot()

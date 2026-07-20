@@ -1,1439 +1,654 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-    <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0">
-
-    <meta
-        name="theme-color"
-        content="#0F172A">
-
-    <title>TrafficIQ • AI Traffic Intelligence Platform</title>
-
-    <!-- =========================
-         Google Fonts
-    ========================== -->
-
-    <link rel="preconnect"
-          href="https://fonts.googleapis.com">
-
-    <link rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossorigin>
-
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-          rel="stylesheet">
-
-    <!-- =========================
-         Lucide Icons
-    ========================== -->
-
-    <script src="https://unpkg.com/lucide@latest"></script>
-
-    <!-- =========================
-         Chart.js
-    ========================== -->
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- =========================
-         CSS
-    ========================== -->
-
-    <link rel="stylesheet" href="css/variables.css">
-    <link rel="stylesheet" href="css/reset.css">
-    <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/typography.css">
-    <link rel="stylesheet" href="css/layout.css">
-    <link rel="stylesheet" href="css/sidebar.css">
-    <link rel="stylesheet" href="css/header.css">
-    <link rel="stylesheet" href="css/hero.css">
-    <link rel="stylesheet" href="css/cards.css">
-    <link rel="stylesheet" href="css/dashboard.css">
-    <link rel="stylesheet" href="css/animations.css">
-    <link rel="stylesheet" href="css/responsive.css">
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#070B14">
+  <title>TrafficIQ • AI Traffic Intelligence Platform</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/trafficiq.css">
 </head>
-
 <body>
 
-<!-- ============================================= -->
-<!-- LOADER -->
-<!-- ============================================= -->
-
+<!-- ==========================================================
+     LOADER
+     ========================================================== -->
 <div id="loader">
-
-    <h1>TrafficIQ</h1>
-
-    <p>Initializing AI Traffic Intelligence...</p>
-
+  <div class="loader-icon">IQ</div>
+  <h1>TrafficIQ</h1>
+  <p>Initializing AI Traffic Intelligence...</p>
 </div>
 
-<!-- ============================================= -->
-<!-- EMERGENCY BANNER -->
-<!-- ============================================= -->
+<!-- ==========================================================
+     SIDEBAR OVERLAY (Mobile)
+     ========================================================== -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-<div
-    id="emergencyBanner"
-    class="emergency-banner hidden">
-
-    🚨 Emergency Vehicle Detected
-
-</div>
-
-<!-- ============================================= -->
-<!-- APPLICATION -->
-<!-- ============================================= -->
-
+<!-- ==========================================================
+     APPLICATION
+     ========================================================== -->
 <div class="app">
 
-<!-- ============================================= -->
-<!-- SIDEBAR -->
-<!-- ============================================= -->
-
-<aside class="sidebar">
-
-    <div>
-
-        <div class="logo">
-
-            <h2>TrafficIQ</h2>
-
-            <p>
-
-                AI Traffic Intelligence Platform
-
-            </p>
-
-        </div>
-
-        <nav class="sidebar-menu">
-
-            <a
-                href="#dashboardSection"
-                class="active">
-
-                <i data-lucide="layout-dashboard"></i>
-
-                Dashboard
-
-            </a>
-
-            <a href="#cameraSection">
-
-                <i data-lucide="video"></i>
-
-                Monitoring
-
-            </a>
-
-            <a href="#signalSection">
-
-                <i data-lucide="traffic-cone"></i>
-
-                Signal Control
-
-            </a>
-
-            <a href="#aiSection">
-
-                <i data-lucide="brain"></i>
-
-                AI Engine
-
-            </a>
-
-            <a href="#analyticsSection">
-
-                <i data-lucide="bar-chart-3"></i>
-
-                Analytics
-
-            </a>
-
-            <a href="#reportsSection">
-
-                <i data-lucide="file-text"></i>
-
-                Reports
-
-            </a>
-
-            <a href="#settingsSection">
-
-                <i data-lucide="settings"></i>
-
-                Settings
-
-            </a>
-
-        </nav>
-
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar" id="sidebar">
+    
+    <!-- Logo -->
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">IQ</div>
+      <div class="sidebar-logo-text">
+        <h2>TrafficIQ</h2>
+        <span>AI Traffic Intelligence Platform</span>
+      </div>
     </div>
 
-    <!-- ========================= -->
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+      <div class="sidebar-nav-label">Main</div>
+      <div class="sidebar-nav-item active" data-section="sectionDashboard">
+        <span class="nav-icon"><i data-lucide="layout-dashboard"></i></span>
+        <span class="nav-text">Dashboard</span>
+      </div>
+      <div class="sidebar-nav-item" data-section="sectionMonitoring">
+        <span class="nav-icon"><i data-lucide="video"></i></span>
+        <span class="nav-text">Live Monitoring</span>
+      </div>
+      <div class="sidebar-nav-item" data-section="sectionAnalytics">
+        <span class="nav-icon"><i data-lucide="bar-chart-3"></i></span>
+        <span class="nav-text">Analytics</span>
+      </div>
+      <div class="sidebar-nav-item" data-section="sectionReports">
+        <span class="nav-icon"><i data-lucide="file-text"></i></span>
+        <span class="nav-text">Traffic Reports</span>
+      </div>
 
-    <div class="system-panel">
+      <div class="sidebar-nav-label">System</div>
+      <div class="sidebar-nav-item" data-section="sectionEmergency">
+        <span class="nav-icon"><i data-lucide="ambulance"></i></span>
+        <span class="nav-text">Emergency History</span>
+      </div>
+      <div class="sidebar-nav-item" data-section="sectionLanes">
+        <span class="nav-icon"><i data-lucide="traffic-cone"></i></span>
+        <span class="nav-text">Camera Management</span>
+      </div>
+      <div class="sidebar-nav-item">
+        <span class="nav-icon"><i data-lucide="settings"></i></span>
+        <span class="nav-text">Settings</span>
+      </div>
+      <div class="sidebar-nav-item">
+        <span class="nav-icon"><i data-lucide="book-text"></i></span>
+        <span class="nav-text">Logs</span>
+      </div>
+    </nav>
 
-        <h4>
-
-            System Health
-
-        </h4>
-
-        <div class="status-item">
-
-            Backend
-
-            <span id="backendStatus" class="online">
-
-                Online
-
-            </span>
-
+    <!-- Sidebar Status Footer -->
+    <div class="sidebar-footer">
+      <div class="sidebar-status-grid">
+        <div class="sidebar-status-item">
+          <span class="status-label">Backend</span>
+          <div class="status-value">
+            <span class="status-dot green pulse" id="sidebarBackendDot"></span>
+            <span class="status-text" id="sidebarBackend">Online</span>
+          </div>
         </div>
-
-        <div class="status-item">
-
-            Camera
-
-            <span id="cameraStatus" class="online">
-
-                Running
-
-            </span>
-
+        <div class="sidebar-status-item">
+          <span class="status-label">AI Engine</span>
+          <div class="status-value">
+            <span class="status-dot green pulse" id="sidebarAIDot"></span>
+            <span class="status-text" id="sidebarAI">Running</span>
+          </div>
         </div>
-
-        <div class="status-item">
-
-            YOLOv8
-
-            <span id="yoloStatus" class="online">
-
-                Loaded
-
-            </span>
-
+        <div class="sidebar-status-item">
+          <span class="status-label">Camera</span>
+          <div class="status-value">
+            <span class="status-dot green pulse" id="sidebarCameraDot"></span>
+            <span class="status-text" id="sidebarCamera">Online</span>
+          </div>
         </div>
-
-        <div class="status-item">
-
-            ByteTrack
-
-            <span id="byteStatus" class="online">
-
-                Active
-
-            </span>
-
+        <div class="sidebar-status-item">
+          <span class="status-label">Detection</span>
+          <div class="status-value">
+            <span class="status-dot green pulse" id="sidebarDetectionDot"></span>
+            <span class="status-text" id="sidebarDetection">Active</span>
+          </div>
         </div>
-
-        <div class="status-item">
-
-            FPS
-
-            <span id="fps">
-
-                29
-
-            </span>
-
-        </div>
-
+      </div>
     </div>
 
-</aside>
+  </aside>
 
-<!-- ============================================= -->
-<!-- MAIN -->
-<!-- ============================================= -->
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="main">
 
-<main class="main" id="dashboardSection">
-
-<!-- ============================================= -->
-<!-- HEADER -->
-<!-- ============================================= -->
-
-<header class="header">
-
-    <div>
-
-        <h1>
-
-            TrafficIQ
-
-        </h1>
-
-        <p>
-
-            AI Traffic Intelligence Platform
-
-        </p>
-
-    </div>
-
-    <div class="header-right">
-
-        <div class="search-box">
-
-            <i data-lucide="search"></i>
-
-            <input
-                type="text"
-                placeholder="Search..." />
-
+    <!-- ===== HEADER ===== -->
+    <header class="header">
+      <div class="header-left">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <button id="menuToggle" style="display:none;width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid var(--border-default);color:var(--text-secondary);align-items:center;justify-content:center;cursor:pointer;" class="mobile-menu-btn">
+            <i data-lucide="menu"></i>
+          </button>
+          <div>
+            <h1>TrafficIQ</h1>
+            <span class="header-subtitle">AI Traffic Intelligence Platform</span>
+          </div>
         </div>
-
-        <div class="header-btn notification">
-
-            <i data-lucide="bell"></i>
-
+      </div>
+      <div class="header-right">
+        <div class="header-search">
+          <i data-lucide="search"></i>
+          <input type="text" placeholder="Search cameras, lanes, events...">
         </div>
-
-        <div class="header-btn">
-
-            <i data-lucide="settings"></i>
-
+        <button class="header-btn" title="Notifications">
+          <i data-lucide="bell"></i>
+          <span class="badge-dot"></span>
+        </button>
+        <button class="header-btn" title="Settings">
+          <i data-lucide="settings"></i>
+        </button>
+        <div class="live-badge">
+          <span class="live-dot"></span>
+          LIVE
         </div>
-
-        <span class="live-badge">
-
-            LIVE
-
-        </span>
-
-        <span id="clock"></span>
-
-        <div class="user-profile">
-
-            <div class="user-avatar">
-
-                VK
-
-            </div>
-
-            <div class="user-info">
-
-                <span class="user-name">
-
-                    Admin
-
-                </span>
-
-                <span class="user-role">
-
-                    Traffic Control
-
-                </span>
-
-            </div>
-
+        <span class="header-clock" id="headerClock">00:00:00</span>
+        <div class="admin-profile">
+          <div class="admin-avatar">AD</div>
+          <div class="admin-info">
+            <span class="admin-name">Admin</span>
+            <span class="admin-role">Traffic Control</span>
+          </div>
         </div>
+      </div>
+    </header>
 
-    </div>
+    <div class="main-content" id="sectionDashboard">
 
-</header>
-
-<!-- ============================================= -->
-<!-- HERO -->
-<!-- ============================================= -->
-
-<section class="hero">
-
-    <div>
-
-        <h2>
-
-            AI Traffic Intelligence Platform
-
-        </h2>
-
-        <p>
-
-            Intelligent traffic monitoring powered by
-            YOLOv8, ByteTrack, OpenCV and FastAPI.
-            Designed for adaptive signal control,
-            smart analytics and future emergency
-            vehicle prioritization.
-
-        </p>
-
-        <div class="hero-tags">
-
-            <span class="hero-tag">YOLOv8</span>
-
-            <span class="hero-tag">ByteTrack</span>
-
-            <span class="hero-tag">OpenCV</span>
-
-            <span class="hero-tag">FastAPI</span>
-
-            <span class="hero-tag">AI Analytics</span>
-
+      <!-- ===== OPERATIONAL CONTROL PANEL ===== -->
+      <section class="control-panel">
+        <div class="control-panel-header">
+          <h2>Operational Control</h2>
+          <span id="controlStatus" style="color:var(--text-tertiary);font-weight:600;">System Idle</span>
         </div>
-
-        <div class="hero-actions">
-
-            <button class="btn-primary">
-
-                <i data-lucide="play"></i>
-
-                Start Monitoring
-
-            </button>
-
-            <button class="btn-secondary">
-
-                <i data-lucide="bar-chart-3"></i>
-
-                View Analytics
-
-            </button>
-
+        <div class="control-buttons">
+          <button class="control-btn start" id="btnStart">
+            <i data-lucide="play"></i>
+            <span class="btn-text">Start Monitoring</span>
+          </button>
+          <button class="control-btn stop" id="btnStop" disabled>
+            <i data-lucide="square"></i>
+            <span class="btn-text">Stop Monitoring</span>
+          </button>
+          <button class="control-btn restart" id="btnRestart">
+            <i data-lucide="refresh-cw"></i>
+            <span class="btn-text">Restart System</span>
+          </button>
+          <button class="control-btn switch-camera" id="btnSwitchCamera">
+            <i data-lucide="camera"></i>
+            <span class="btn-text">Switch Camera</span>
+          </button>
+          <button class="control-btn settings" id="btnSettings">
+            <i data-lucide="sliders"></i>
+            <span class="btn-text">Settings</span>
+          </button>
         </div>
+      </section>
 
-    </div>
-
-    <div class="hero-status">
-
-        <h3>
-
-            System Overview
-
-        </h3>
-
-        <div class="status-row">
-
-            <span class="status-label">
-
-                Backend
-
-            </span>
-
-            <span class="status-value">
-
-                Online
-
-            </span>
-
+      <!-- ===== SYSTEM STATUS PANEL ===== -->
+      <section class="system-status-panel" id="sectionMonitoring">
+        <div class="status-card status-green" id="statusBackend">
+          <span class="status-card-label">Backend</span>
+          <div class="status-card-value">
+            <span class="dot green pulse"></span>
+            <span class="status-text">Online</span>
+          </div>
         </div>
-
-        <div class="status-row">
-
-            <span class="status-label">
-
-                AI Engine
-
-            </span>
-
-            <span class="status-value">
-
-                Running
-
-            </span>
-
+        <div class="status-card status-green" id="statusAI">
+          <span class="status-card-label">AI Engine</span>
+          <div class="status-card-value">
+            <span class="dot green pulse"></span>
+            <span class="status-text">Running</span>
+          </div>
         </div>
+        <div class="status-card status-green" id="statusVideo">
+          <span class="status-card-label">Video Feed</span>
+          <div class="status-card-value">
+            <span class="dot green pulse"></span>
+            <span class="status-text">Active</span>
+          </div>
+        </div>
+        <div class="status-card status-green" id="statusCamera">
+          <span class="status-card-label">Camera Status</span>
+          <div class="status-card-value">
+            <span class="dot green pulse"></span>
+            <span class="status-text">Online</span>
+          </div>
+        </div>
+        <div class="status-card status-green" id="statusDetection">
+          <span class="status-card-label">Detection</span>
+          <div class="status-card-value">
+            <span class="dot green pulse"></span>
+            <span class="status-text">Active</span>
+          </div>
+        </div>
+        <div class="status-card status-green" id="statusTracker">
+          <span class="status-card-label">Tracker Status</span>
+          <div class="status-card-value">
+            <span class="dot green pulse"></span>
+            <span class="status-text">Active</span>
+          </div>
+        </div>
+        <div class="status-card status-green" id="statusSignal">
+          <span class="status-card-label">Signal Ctrl</span>
+          <div class="status-card-value">
+            <span class="dot green pulse"></span>
+            <span class="status-text">Active</span>
+          </div>
+        </div>
+        <div class="status-card status-green" id="statusEmergency">
+          <span class="status-card-label">Emergency Mode</span>
+          <div class="status-card-value">
+            <span class="dot green pulse"></span>
+            <span class="status-text">Standby</span>
+          </div>
+        </div>
+        <div class="status-card status-green" id="statusGPU">
+          <span class="status-card-label">GPU Usage</span>
+          <div class="status-card-value">
+            <span class="dot green pulse"></span>
+            <span class="status-text">Standby</span>
+          </div>
+        </div>
+        <div class="status-card status-green" id="statusFPS">
+          <span class="status-card-label">Inference FPS</span>
+          <div class="status-card-value">
+            <span class="dot green pulse"></span>
+            <span class="status-text">0</span>
+          </div>
+        </div>
+      </section>
 
-        <div class="status-row">
-
-            <span class="status-label">
-
-                Video Feed
-
-            </span>
-
-            <span class="status-value live-indicator">
-
+      <!-- ===== MAIN GRID: Camera + Stats ===== -->
+      <div class="main-grid">
+        
+        <!-- Camera Feed -->
+        <section class="camera-feed">
+          <div class="camera-header">
+            <div class="camera-header-left">
+              <h3 id="cameraName">Intersection A - Main</h3>
+              <div class="camera-live-tag">
+                <span class="live-camera-dot"></span>
                 LIVE
-
-            </span>
-
-        </div>
-
-        <div class="status-row">
-
-            <span class="status-label">
-
-                Detection Model
-
-            </span>
-
-            <span class="status-value">
-
-                YOLOv8
-
-            </span>
-
-        </div>
-
-    </div>
-
-</section>
-
-<!-- ============================================= -->
-<!-- KPI DASHBOARD -->
-<!-- ============================================= -->
-
-<section class="kpi-grid">
-
-    <!-- Total Vehicles -->
-
-    <div class="kpi-card card-blue">
-
-        <div class="kpi-icon">
-            <i data-lucide="car-front"></i>
-        </div>
-
-        <h3>Total Vehicles</h3>
-
-        <h2 id="vehicleCount">0</h2>
-
-        <div class="kpi-footer">
-
-            <span class="kpi-change">
-
-                ▲ Live Count
-
-            </span>
-
-            <span class="kpi-status">
-
-                Today
-
-            </span>
-
-        </div>
-
-    </div>
-
-    <!-- Traffic Density -->
-
-    <div class="kpi-card card-green">
-
-        <div class="kpi-icon">
-
-            <i data-lucide="traffic-cone"></i>
-
-        </div>
-
-        <h3>Traffic Density</h3>
-
-        <h2 id="density">
-
-            LOW
-
-        </h2>
-
-        <div class="kpi-footer">
-
-            <span class="status-success">
-
-                Stable
-
-            </span>
-
-            <span class="kpi-status">
-
-                AI
-
-            </span>
-
-        </div>
-
-    </div>
-
-    <!-- Current Signal -->
-
-    <div class="kpi-card card-orange">
-
-        <div class="kpi-icon">
-
-            <i data-lucide="timer-reset"></i>
-
-        </div>
-
-        <h3>Current Green</h3>
-
-        <h2 id="greenLane">
-
-            Lane A
-
-        </h2>
-
-        <div class="kpi-footer">
-
-            <span id="greenTimeFooter" class="status-warning">
-
-                15 sec
-
-            </span>
-
-            <span class="kpi-status">
-
-                Remaining
-
-            </span>
-
-        </div>
-
-    </div>
-
-    <!-- AI Confidence -->
-
-    <div class="kpi-card card-purple">
-
-        <div class="kpi-icon">
-
-            <i data-lucide="brain"></i>
-
-        </div>
-
-        <h3>AI Confidence</h3>
-
-        <h2 id="confidence">
-
-            95%
-
-        </h2>
-
-        <div class="kpi-footer">
-
-            <span class="status-success">
-
-                Excellent
-
-            </span>
-
-            <span class="kpi-status">
-
-                Model
-
-            </span>
-
-        </div>
-
-    </div>
-
-    <!-- FPS -->
-
-    <div class="kpi-card card-cyan">
-
-        <div class="kpi-icon">
-
-            <i data-lucide="activity"></i>
-
-        </div>
-
-        <h3>Processing FPS</h3>
-
-        <h2 id="fpsCard">
-
-            29
-
-        </h2>
-
-        <div class="kpi-footer">
-
-            <span class="status-success">
-
-                Real-Time
-
-            </span>
-
-            <span class="kpi-status">
-
-                GPU
-
-            </span>
-
-        </div>
-
-    </div>
-
-    <!-- Emergency -->
-
-    <div class="kpi-card card-red">
-
-        <div class="kpi-icon">
-
-            <i data-lucide="ambulance"></i>
-
-        </div>
-
-        <h3>Emergency Vehicles</h3>
-
-        <h2 id="emergencyCount">
-
-            0
-
-        </h2>
-
-        <div class="kpi-footer">
-
-            <span class="status-success">
-
-                Normal
-
-            </span>
-
-            <span class="kpi-status">
-
-                Priority
-
-            </span>
-
-        </div>
-
-    </div>
-
-</section>
-
-<!-- ============================================= -->
-<!-- LIVE CAMERA -->
-<!-- ============================================= -->
-
-<section class="camera-section" id="cameraSection">
-
-    <div class="camera-card">
-
-        <!-- Header -->
-
-        <div class="card-header">
-
-            <h2>
-
-                Live AI Camera Feed
-
-            </h2>
-
-            <span class="live">
-
-                LIVE
-
-            </span>
-
-        </div>
-
-        <!-- Camera Wrapper -->
-
-        <div class="camera-wrapper">
-
-            <img
-
-                id="camera"
-
-                src="http://127.0.0.1:8000/video-feed"
-
-                alt="Traffic Camera"
-
-                onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%221280%22 height=%22720%22 viewBox=%220 0 1280 720%22%3E%3Crect width=%221280%22 height=%22720%22 fill=%230f172a/%3E%3Crect x=%2230%22 y=%2230%22 width=%221220%22 height=%22660%22 rx=%2220%22 fill=%231e293b/%3E%3Cpath d=%22M530 220h220c70 0 126 56 126 126v128c0 70-56 126-126 126H530c-70 0-126-56-126-126V346c0-70 56-126 126-126z%22 fill=%233b82f6/%3E%3Ccircle cx=%22590%22 cy=%22410%22 r=%2270%22 fill=%22white%22 opacity=%220.85%22/%3E%3Cpath d=%22M360 560h560%22 stroke=%22white%22 stroke-width=%2216%22 stroke-linecap=%22round%22 opacity=%220.7%22/%3E%3C/svg%3E'"
-
-            >
-
-            <!-- Overlay -->
-
-            <div class="camera-overlay">
-
-                <div class="overlay-left">
-
-                    <span>
-
-                        Camera 01
-
-                    </span>
-
-                    <span>
-
-                        YOLOv8 Detection
-
-                    </span>
-
-                </div>
-
-                <div class="overlay-right">
-
-                    <span>
-
-                        FPS :
-                        <strong id="overlayFPS">
-
-                            29
-
-                        </strong>
-
-                    </span>
-
-                    <span>
-
-                        Vehicles :
-                        <strong id="overlayVehicles">
-
-                            0
-
-                        </strong>
-
-                    </span>
-
-                </div>
-
+              </div>
             </div>
+            <div class="camera-header-right">
+              <span>FPS <strong id="hudFPS">0</strong></span>
+              <span>Detections <strong id="hudVehicles">0</strong></span>
+            </div>
+          </div>
+          <div class="camera-wrapper">
+            <img id="cameraFeed" 
+                 src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%221280%22 height=%22720%22 viewBox=%220 0 1280 720%22%3E%3Crect width=%221280%22 height=%22720%22 fill=%22070B14%22/%3E%3Crect x=%2230%22 y=%2230%22 width=%221220%22 height=%22660%22 rx=%2220%22 fill=%22101827%22/%3E%3Cpath d=%22M530 220h220c70 0 126 56 126 126v128c0 70-56 126-126 126H530c-70 0-126-56-126-126V346c0-70 56-126 126-126z%22 fill=%223B82F6%22 opacity=%220.5%22/%3E%3Ccircle cx=%22590%22 cy=%22410%22 r=%2270%22 fill=%22white%22 opacity=%220.1%22/%3E%3C/svg%3E" 
+                 alt="Traffic Camera Feed">
+            <!-- HUD Overlay -->
+            <div class="camera-hud">
+              <div class="camera-corner tl"></div>
+              <div class="camera-corner tr"></div>
+              <div class="camera-corner bl"></div>
+              <div class="camera-corner br"></div>
+              
+              <div class="camera-hud-top">
+                <div class="camera-hud-item">
+                  <i data-lucide="camera"></i>
+                  <span class="hud-label">CAM</span>
+                  <span class="hud-value">01</span>
+                </div>
+                <div class="camera-hud-item">
+                  <i data-lucide="activity"></i>
+                  <span class="hud-label">FPS</span>
+                  <span class="hud-value" id="hudFPS2">0</span>
+                </div>
+              </div>
+              
+              <div class="camera-hud-bottom">
+                <div class="camera-hud-item">
+                  <i data-lucide="car-front"></i>
+                  <span class="hud-label">VEHICLES</span>
+                  <span class="hud-value" id="hudVehicles2">0</span>
+                </div>
+                <div class="camera-hud-item">
+                  <i data-lucide="ambulance"></i>
+                  <span class="hud-label">EMERGENCY</span>
+                  <span class="hud-value" id="hudEmergency">0</span>
+                </div>
+                <div class="camera-hud-item">
+                  <i data-lucide="traffic-cone"></i>
+                  <span class="hud-label">SIGNAL</span>
+                  <span class="hud-value" id="hudSignal">--</span>
+                </div>
+                <div class="camera-hud-item">
+                  <i data-lucide="brain"></i>
+                  <span class="hud-label">INFERENCE</span>
+                  <span class="hud-value" id="hudInference">0%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Status Bar -->
+          <div class="camera-status-bar">
+            <div class="status-group">
+              <span class="status-item">FPS: <span class="stat-value" id="camFPS">0</span></span>
+              <span class="status-item">Frame: <span class="stat-value" id="camFrame">0</span></span>
+              <span class="status-item">Detections: <span class="stat-value" id="camDetections">0</span></span>
+            </div>
+            <div class="status-group">
+              <span class="status-item">Emergency: <span class="stat-value" id="camEmergency">0</span></span>
+              <span class="status-item">Signal: <span class="stat-value" id="camSignal">--</span></span>
+              <span class="status-item">AI: <span class="stat-value" id="camInference">0%</span></span>
+            </div>
+          </div>
+        </section>
 
+        <!-- Real-Time Statistics Sidebar -->
+        <aside class="stats-sidebar">
+          <div class="stats-sidebar-header">
+            <h3>Real-Time Statistics</h3>
+            <span>Live dashboard metrics</span>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-card-left">
+              <div class="stat-icon blue"><i data-lucide="car-front"></i></div>
+              <div class="stat-info">
+                <span class="stat-label">Vehicles Today</span>
+                <span class="stat-value" id="statVehiclesToday">0</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-card-left">
+              <div class="stat-icon cyan"><i data-lucide="car"></i></div>
+              <div class="stat-info">
+                <span class="stat-label">Current Vehicles</span>
+                <span class="stat-value" id="statCurrentVehicles">0</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-card-left">
+              <div class="stat-icon red"><i data-lucide="ambulance"></i></div>
+              <div class="stat-info">
+                <span class="stat-label">Emergency Vehicles</span>
+                <span class="stat-value" id="statEmergency">0</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-card-left">
+              <div class="stat-icon amber"><i data-lucide="clock"></i></div>
+              <div class="stat-info">
+                <span class="stat-label">Avg Waiting Time</span>
+                <span class="stat-value" id="statAvgWait">0s</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-card-left">
+              <div class="stat-icon blue"><i data-lucide="arrow-left-right"></i></div>
+              <div class="stat-info">
+                <span class="stat-label">Signal Changes</span>
+                <span class="stat-value" id="statSignalChanges">0</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-card-left">
+              <div class="stat-icon green"><i data-lucide="layers"></i></div>
+              <div class="stat-info">
+                <span class="stat-label">Active Lanes</span>
+                <span class="stat-value" id="statActiveLanes">0</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-card-left">
+              <div class="stat-icon purple"><i data-lucide="target"></i></div>
+              <div class="stat-info">
+                <span class="stat-label">Detection Accuracy</span>
+                <span class="stat-value" id="statAccuracy">0%</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-card-left">
+              <div class="stat-icon green"><i data-lucide="shield"></i></div>
+              <div class="stat-info">
+                <span class="stat-label">System Uptime</span>
+                <span class="stat-value" id="statUptime">00:00:00</span>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+      </div>
+
+      <!-- ===== EMERGENCY PANEL ===== -->
+      <section class="emergency-panel" id="emergencyPanel">
+        <div class="emergency-card">
+          <div class="emergency-card-header">
+            <div class="emergency-card-header-left">
+              <div class="emergency-siren">🚨</div>
+              <h3>Emergency Vehicle Detected</h3>
+            </div>
+            <div class="emergency-badge">
+              <span class="pulse-dot"></span>
+              Active Override
+            </div>
+          </div>
+          <div class="emergency-grid">
+            <div class="emergency-item">
+              <span class="e-label">Emergency Vehicle</span>
+              <span class="e-value emergency-text" id="emergencyVehicle">AMBULANCE</span>
+            </div>
+            <div class="emergency-item">
+              <span class="e-label">Confidence</span>
+              <span class="e-value" id="emergencyConfidence">98%</span>
+            </div>
+            <div class="emergency-item">
+              <span class="e-label">Lane</span>
+              <span class="e-value" id="emergencyLane">Lane B</span>
+            </div>
+            <div class="emergency-item">
+              <span class="e-label">Timestamp</span>
+              <span class="e-value" id="emergencyTimestamp">--:--:--</span>
+            </div>
+            <div class="emergency-item">
+              <span class="e-label">Current Signal</span>
+              <span class="e-value" id="emergencySignal">--</span>
+            </div>
+            <div class="emergency-item">
+              <span class="e-label">Est. Crossing</span>
+              <span class="e-value" id="emergencyEstimate">~15 sec</span>
+            </div>
+            <div class="emergency-item" style="grid-column:span 2;">
+              <span class="e-label">Action Taken</span>
+              <span class="e-value emergency-text" id="emergencyAction">Signal Override — Green Wave Active</span>
+            </div>
+          </div>
+          <button class="emergency-action-btn" onclick="showToast('Opening detection view...','info')">
+            <i data-lucide="eye"></i>
+            View Detection
+          </button>
         </div>
+      </section>
+
+      <!-- ===== LANE STATUS ===== -->
+      <section class="lane-section" id="sectionLanes">
+        <div class="analytics-header">
+          <h2>Lane Status</h2>
+          <span style="font-size:13px;color:var(--text-tertiary);font-weight:500;">Real-time lane occupancy & density</span>
+        </div>
+        <div class="lane-grid">
+          <!-- Lane A -->
+          <div class="lane-status-card" id="laneCardLaneA">
+            <div class="lane-top">
+              <span class="lane-name">Lane A</span>
+              <span class="lane-density low">LOW</span>
+            </div>
+            <div class="lane-progress">
+              <div class="lane-progress-bar green" style="width:25%"></div>
+            </div>
+            <div class="lane-stats">
+              <span>Vehicles: <strong class="lane-vehicles">0</strong></span>
+              <span>Green: <strong class="lane-green">15s</strong></span>
+            </div>
+          </div>
+          <!-- Lane B -->
+          <div class="lane-status-card" id="laneCardLaneB">
+            <div class="lane-top">
+              <span class="lane-name">Lane B</span>
+              <span class="lane-density low">LOW</span>
+            </div>
+            <div class="lane-progress">
+              <div class="lane-progress-bar blue" style="width:20%"></div>
+            </div>
+            <div class="lane-stats">
+              <span>Vehicles: <strong class="lane-vehicles">0</strong></span>
+              <span>Green: <strong class="lane-green">15s</strong></span>
+            </div>
+          </div>
+          <!-- Lane C -->
+          <div class="lane-status-card" id="laneCardLaneC">
+            <div class="lane-top">
+              <span class="lane-name">Lane C</span>
+              <span class="lane-density low">LOW</span>
+            </div>
+            <div class="lane-progress">
+              <div class="lane-progress-bar amber" style="width:20%"></div>
+            </div>
+            <div class="lane-stats">
+              <span>Vehicles: <strong class="lane-vehicles">0</strong></span>
+              <span>Green: <strong class="lane-green">15s</strong></span>
+            </div>
+          </div>
+          <!-- Lane D -->
+          <div class="lane-status-card" id="laneCardLaneD">
+            <div class="lane-top">
+              <span class="lane-name">Lane D</span>
+              <span class="lane-density very-high">VERY HIGH</span>
+            </div>
+            <div class="lane-progress">
+              <div class="lane-progress-bar red" style="width:20%"></div>
+            </div>
+            <div class="lane-stats">
+              <span>Vehicles: <strong class="lane-vehicles">0</strong></span>
+              <span>Green: <strong class="lane-green">15s</strong></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== TRAFFIC ANALYTICS (CHARTS) ===== -->
+      <section class="analytics-section" id="sectionAnalytics">
+        <div class="analytics-header">
+          <h2>Traffic Analytics</h2>
+          <div class="analytics-tabs">
+            <span class="analytics-tab active">Real-Time</span>
+            <span class="analytics-tab">Hourly</span>
+            <span class="analytics-tab">Daily</span>
+          </div>
+        </div>
+        <div class="chart-grid">
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <h4>Traffic Density</h4>
+              <span class="chart-badge">Live</span>
+            </div>
+            <canvas id="densityChart"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <h4>Vehicle Count Trend</h4>
+              <span class="chart-badge">Last 20</span>
+            </div>
+            <canvas id="vehicleChart"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <h4>Vehicle Distribution</h4>
+              <span class="chart-badge">Current</span>
+            </div>
+            <canvas id="distributionChart"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <h4>Signal Timing</h4>
+              <span class="chart-badge">Recent</span>
+            </div>
+            <canvas id="signalTimelineChart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== EVENT TIMELINE ===== -->
+      <section class="timeline-section" id="sectionReports">
+        <div class="timeline-container">
+          <div class="timeline-header">
+            <h3>Live Event Timeline</h3>
+            <span class="timeline-count" id="timelineCount">3 Events</span>
+          </div>
+          <div class="timeline-list" id="timelineList">
+            <div class="timeline-empty">No events yet</div>
+          </div>
+        </div>
+      </section>
 
     </div>
+    <!-- end main-content -->
 
-</section>
-
-<!-- ============================================= -->
-<!-- TRAFFIC CONTROL GRID -->
-<!-- ============================================= -->
-
-<section class="middle-grid">
-
-    <!-- ========================================= -->
-    <!-- LANE STATUS -->
-    <!-- ========================================= -->
-
-    <div class="lane-panel" id="signalSection">
-
-        <div class="card-header">
-
-            <h2>
-
-                Lane Status
-
-            </h2>
-
-        </div>
-
-        <div id="lanes">
-
-            <!-- Lane A -->
-
-            <div class="lane-card">
-
-                <div class="lane-title">
-
-                    <span>Lane A</span>
-
-                    <span id="laneAStatus">LOW</span>
-
-                </div>
-
-                <div class="progress">
-
-                    <div
-                        class="progress-bar"
-                        id="laneAProgress"
-                        style="width:25%">
-                    </div>
-
-                </div>
-
-                <div class="lane-info">
-
-                    <span>
-
-                        Vehicles :
-                        <strong id="laneAVehicles">
-                            0
-                        </strong>
-
-                    </span>
-
-                    <span>
-
-                        Green :
-                        <strong id="laneAGreen">
-                            15 sec
-                        </strong>
-
-                    </span>
-
-                </div>
-
-            </div>
-
-            <!-- Lane B -->
-
-            <div class="lane-card">
-
-                <div class="lane-title">
-
-                    <span>Lane B</span>
-
-                    <span id="laneBStatus">LOW</span>
-
-                </div>
-
-                <div class="progress">
-
-                    <div
-                        class="progress-bar"
-                        id="laneBProgress"
-                        style="width:20%">
-                    </div>
-
-                </div>
-
-                <div class="lane-info">
-
-                    <span>
-
-                        Vehicles :
-                        <strong id="laneBVehicles">
-                            0
-                        </strong>
-
-                    </span>
-
-                    <span>
-
-                        Green :
-                        <strong id="laneBGreen">
-                            15 sec
-                        </strong>
-
-                    </span>
-
-                </div>
-
-            </div>
-
-            <!-- Lane C -->
-
-            <div class="lane-card">
-
-                <div class="lane-title">
-
-                    <span>Lane C</span>
-
-                    <span id="laneCStatus">LOW</span>
-
-                </div>
-
-                <div class="progress">
-
-                    <div
-                        class="progress-bar"
-                        id="laneCProgress"
-                        style="width:20%">
-                    </div>
-
-                </div>
-
-                <div class="lane-info">
-
-                    <span>
-
-                        Vehicles :
-                        <strong id="laneCVehicles">
-                            0
-                        </strong>
-
-                    </span>
-
-                    <span>
-
-                        Green :
-                        <strong id="laneCGreen">
-                            15 sec
-                        </strong>
-
-                    </span>
-
-                </div>
-
-            </div>
-
-            <!-- Lane D -->
-
-            <div class="lane-card">
-
-                <div class="lane-title">
-
-                    <span>Lane D</span>
-
-                    <span id="laneDStatus">LOW</span>
-
-                </div>
-
-                <div class="progress">
-
-                    <div
-                        class="progress-bar"
-                        id="laneDProgress"
-                        style="width:20%">
-                    </div>
-
-                </div>
-
-                <div class="lane-info">
-
-                    <span>
-
-                        Vehicles :
-                        <strong id="laneDVehicles">
-                            0
-                        </strong>
-
-                    </span>
-
-                    <span>
-
-                        Green :
-                        <strong id="laneDGreen">
-                            15 sec
-                        </strong>
-
-                    </span>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- ========================================= -->
-    <!-- AI DECISION ENGINE -->
-    <!-- ========================================= -->
-
-    <div class="decision-panel" id="aiSection">
-
-        <div class="card-header">
-
-            <h2>
-
-                AI Decision Engine
-
-            </h2>
-
-        </div>
-
-        <div class="ai-card">
-
-            <div class="ai-row">
-
-                <span class="ai-label">
-
-                    Current Lane
-
-                </span>
-
-                <span
-                    class="ai-value"
-                    id="decisionLane">
-
-                    Lane A
-
-                </span>
-
-            </div>
-
-            <div class="ai-row">
-
-                <span class="ai-label">
-
-                    AI Mode
-
-                </span>
-
-                <span
-                    class="ai-highlight"
-                    id="decisionMode">
-
-                    Adaptive
-
-                </span>
-
-            </div>
-
-            <div class="ai-row">
-
-                <span class="ai-label">
-
-                    Density Score
-
-                </span>
-
-                <span
-                    class="ai-value"
-                    id="densityScore">
-
-                    12.4
-
-                </span>
-
-            </div>
-
-            <div class="ai-row">
-
-                <span class="ai-label">
-
-                    Green Time
-
-                </span>
-
-                <span
-                    class="ai-value"
-                    id="greenTime">
-
-                    32 sec
-
-                </span>
-
-            </div>
-
-            <div class="ai-row">
-
-                <span class="ai-label">
-
-                    Confidence
-
-                </span>
-
-                <span
-                    class="ai-value"
-                    id="aiConfidence">
-
-                    95%
-
-                </span>
-
-            </div>
-
-            <div class="ai-row">
-
-                <span class="ai-label">
-
-                    Decision
-
-                </span>
-
-                <span
-                    class="ai-value"
-                    id="decisionReason">
-
-                    Highest Density
-
-                </span>
-
-            </div>
-
-        </div>
-
-        <!-- ========================================= -->
-        <!-- Emergency Override -->
-        <!-- ========================================= -->
-
-        <div
-            id="emergencyPanel"
-            class="emergency-panel">
-
-            <h3>
-
-                Emergency Override
-
-            </h3>
-
-            <div class="emergency-content">
-
-                <div>
-
-                    <strong>Status</strong>
-
-                    <span id="emergencyStatus">
-
-                        No Emergency
-
-                    </span>
-
-                </div>
-
-                <div>
-
-                    <strong>Vehicle</strong>
-
-                    <span id="emergencyVehicle">
-
-                        -
-
-                    </span>
-
-                </div>
-
-                <div>
-
-                    <strong>Track ID</strong>
-
-                    <span id="emergencyTrackId">
-
-                        -
-
-                    </span>
-
-                </div>
-
-                <div>
-
-                    <strong>Confidence</strong>
-
-                    <span id="emergencyConfidence">
-
-                        -
-
-                    </span>
-
-                </div>
-
-                <div>
-
-                    <strong>Priority Lane</strong>
-
-                    <span id="priorityLane">
-
-                        -
-
-                    </span>
-
-                </div>
-
-                <div>
-
-                    <strong>Override</strong>
-
-                    <span id="overrideStatus">
-
-                        Disabled
-
-                    </span>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</section>
-
-<!-- ============================================= -->
-<!-- ANALYTICS DASHBOARD -->
-<!-- ============================================= -->
-
-<section class="chart-grid" id="analyticsSection">
-
-    <!-- Vehicle Trend -->
-
-    <div class="chart-card">
-
-        <div class="card-header">
-
-            <h2>Vehicle Trend</h2>
-
-            <span>Last 30 Minutes</span>
-
-        </div>
-
-        <canvas id="vehicleChart"></canvas>
-
-    </div>
-
-    <!-- Lane Density -->
-
-    <div class="chart-card">
-
-        <div class="card-header">
-
-            <h2>Lane Density</h2>
-
-            <span>Live</span>
-
-        </div>
-
-        <canvas id="densityChart"></canvas>
-
-    </div>
-
-    <!-- Vehicle Distribution -->
-
-    <div class="chart-card">
-
-        <div class="card-header">
-
-            <h2>Vehicle Distribution</h2>
-
-            <span>Current</span>
-
-        </div>
-
-        <canvas id="distributionChart"></canvas>
-
-    </div>
-
-    <!-- Signal History -->
-
-    <div class="chart-card">
-
-        <div class="card-header">
-
-            <h2>Signal Timeline</h2>
-
-            <span>Recent</span>
-
-        </div>
-
-        <canvas id="timelineChart"></canvas>
-
-    </div>
-
-</section>
-
-<!-- ============================================= -->
-<!-- EVENT TIMELINE -->
-<!-- ============================================= -->
-
-<section class="timeline-section" id="reportsSection">
-
-    <div class="timeline-card">
-
-        <div class="card-header">
-
-            <h2>
-
-                Live Activity
-
-            </h2>
-
-            <span>
-
-                AI Event Timeline
-
-            </span>
-
-        </div>
-
-        <div id="timeline">
-
-            <div class="timeline-item">
-
-                <div class="timeline-dot"></div>
-
-                <div>
-
-                    <h4>
-
-                        AI Engine Started
-
-                    </h4>
-
-                    <p>
-
-                        System initialized successfully
-
-                    </p>
-
-                </div>
-
-                <span>
-
-                    Just Now
-
-                </span>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</section>
-
-<!-- ============================================= -->
-<!-- FOOTER -->
-<!-- ============================================= -->
-
-<footer class="footer">
-
-    <div>
-
-        <h3>
-
-            TrafficIQ
-
-        </h3>
-
-        <p>
-
-            AI Traffic Intelligence Platform
-
-        </p>
-
-    </div>
-
-    <div>
-
-        Version 2.0
-
-    </div>
-
-    <div>
-
-        © 2026 Vamsi Krishna
-
-    </div>
-
-</footer>
-
-</main>
+  </main>
 
 </div>
 
-<!-- ============================================= -->
-<!-- JAVASCRIPT -->
-<!-- ============================================= -->
+<!-- ===== TOAST CONTAINER ===== -->
+<div class="toast-container" id="toastContainer"></div>
 
+<!-- ===== JAVASCRIPT ===== -->
 <script>
-
-lucide.createIcons();
-
+  // Initialize Lucide icons
+  lucide.createIcons();
+  
+  // Show mobile menu button on small screens
+  (function() {
+    const checkWidth = () => {
+      const btn = document.querySelector('.mobile-menu-btn');
+      if (window.innerWidth <= 992 && btn) {
+        btn.style.display = 'flex';
+      } else if (btn) {
+        btn.style.display = 'none';
+      }
+    };
+    checkWidth();
+    window.addEventListener('resize', checkWidth);
+  })();
 </script>
-
-<!-- Utilities -->
-
-<script src="utils/constants.js"></script>
-
-<script src="utils/helpers.js"></script>
-
-<!-- Services -->
-
-<script src="services/api.js"></script>
-
-<!-- Components -->
-
-<script src="components/sidebar.js"></script>
-
-<script src="components/charts.js"></script>
-
-<script src="components/laneCards.js"></script>
-
-<script src="components/signalPanel.js"></script>
-
-<script src="components/notifications.js"></script>
-
-<!-- Pages -->
-
-<script src="pages/dashboard.js"></script>
+<script src="js/trafficiq.js"></script>
 
 </body>
-
 </html>
